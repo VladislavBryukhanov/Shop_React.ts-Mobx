@@ -3,9 +3,11 @@ export interface IUser extends ICredentials {
   password: string;
   firstName: string;
   lastName: string;
-  gender: boolean | null;
+  gender: boolean | string;
   birthday: number | null;
   contactInfo: IContactInfo;
+
+  [id: string]: string | boolean | null | number | IContactInfo;
 }
 
 export interface ICredentials {

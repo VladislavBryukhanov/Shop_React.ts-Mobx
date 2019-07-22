@@ -1,13 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
 import * as serviceWorker from './serviceWorker';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'mobx-react';
 import authStore from './stores/authStore';
+import rootStore from './stores/rootStore';
+import App from './App';
+import './index.scss'
 
 const stores = {
-  authStore
+  rootStore,
+  authStore,
 };
 
 ReactDOM.render((

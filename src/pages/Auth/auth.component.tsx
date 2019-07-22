@@ -14,7 +14,11 @@ import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import Button from '@material-ui/core/Button';
 import { observable } from 'mobx';
-
+import { Link, LinkProps } from 'react-router-dom';
+import { AuthStore } from '../../stores/authStore';
+import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
+import DateFnsUtils from '@date-io/date-fns';
+import { getMilliseconds } from 'date-fns';
 
 interface IAuthState {
   user: IUser
@@ -22,6 +26,7 @@ interface IAuthState {
 
 interface IAuthProps {
   isSignUp: boolean;
+  authStore?: AuthStore;
 }
 
 const genderList = [
@@ -38,12 +43,13 @@ const genderList = [
 @inject('authStore')
 @observer
 export default class Auth extends React.Component<IAuthProps> {
-  @observable user: IUser = {
+  @observable.deep
+  user: IUser = {
     email: '',
     password: '',
     firstName: '',
     lastName: '',
-    gender: null,
+    gender: '',
     birthday: null,
     contactInfo: {
       phone: '',
@@ -51,14 +57,26 @@ export default class Auth extends React.Component<IAuthProps> {
     }
   };
 
-  onValueChanged = (e: React.FormEvent<HTMLInputElement>) => {
-    const { value, name } = e.currentTarget;
-
-    this.user[name as keyof IUser] = value;
+  onValueChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value, name } = e.target;
+    this.user[name] = value;
   };
 
-  onSignUp = (e: any) => {
+  onValueSelected = (e: React.ChangeEvent<{ name?: string; value: unknown }>) => {
+    const { value, name } = e.target;
+    if (name) {
+      this.user[name] = value as string;
+    }
+  };
+
+  onDateChanged = (date: Date | null) => {
+    this.user.birthday = getMilliseconds(date!);
+    console.error(this.user.birthday)
+  };
+
+  onSignUp = async (e: any) => {
     e.preventDefault();
+    await this.props.authStore!.signUp(this.user);
   };
 
   public render() {
@@ -70,8 +88,8 @@ export default class Auth extends React.Component<IAuthProps> {
             {
               this.props.isSignUp ? (
                 <form onSubmit={this.onSignUp}>
-                  <Toolbar>
-                    <IconButton>
+                  <Toolbar color="inherit">
+                    <IconButton edge="start" component={AdapterLink} to="/">
                       <Icon>arrow_back</Icon>
                     </IconButton>
                     <Typography variant="h6">
@@ -80,25 +98,9 @@ export default class Auth extends React.Component<IAuthProps> {
                   </Toolbar>
 
                   <Grid container>
-                    <Grid item xl={6} lg={6} md={6} sm={6} xs={6}>
-                      <TextField
-                        fullWidth={true}
-                        onChange={this.onValueChanged}
-                        name="email"
-                        label="Email"
-                        required/>
-                    </Grid>
-                    <Grid item xl={6} lg={6} md={6} sm={6} xs={6}>
-                      <TextField
-                        fullWidth={true}
-                        onChange={this.onValueChanged}
-                        name="password"
-                        label="Password"
-                        type="password"
-                        required/>
-                    </Grid>
+                    <Credentials onValueChanged={this.onValueChanged} size={6}/>
 
-                    <Grid item xl={6} lg={6} md={6} sm={6} xs={6}>
+                    <Grid item xs={6}>
                       <TextField
                         fullWidth={true}
                         onChange={this.onValueChanged}
@@ -106,7 +108,7 @@ export default class Auth extends React.Component<IAuthProps> {
                         label="First name"
                         required/>
                     </Grid>
-                    <Grid item xl={6} lg={6} md={6} sm={6} xs={6}>
+                    <Grid item xs={6}>
                       <TextField
                         fullWidth={true}
                         onChange={this.onValueChanged}
@@ -115,33 +117,47 @@ export default class Auth extends React.Component<IAuthProps> {
                         required/>
                     </Grid>
 
-                    {/*<Grid item xl={6} lg={6} md={6} sm={6} xs={6}>*/}
-                      {/*<FormControl fullWidth={true}>*/}
-                        {/*<InputLabel htmlFor="gender">*/}
-                          {/*Gender*/}
-                        {/*</InputLabel>*/}
-                        {/*<Select*/}
-                          {/*name="gender"*/}
-                          {/*inputProps={{id: 'gender'}}*/}
-                        {/*>*/}
-                          {/*{*/}
-                            {/*genderList.map(gender =>*/}
-                              {/*<MenuItem*/}
-                                {/*value={gender.value}*/}
-                                {/*key={gender.name}*/}
-                              {/*>*/}
-                                {/*{gender.name}*/}
-                              {/*</MenuItem>*/}
-                            {/*)*/}
-                          {/*}*/}
-                        {/*</Select>*/}
-                      {/*</FormControl>*/}
-                      {/*/!*<KeyboardDatePicker*!/*/}
-                      {/*/!*label="Birthday"*!/*/}
-                      {/*/!*required/>*!/*/}
-                    {/*</Grid>*/}
+                    <Grid item xs={6}>
+                      <FormControl fullWidth={true}>
+                        <InputLabel htmlFor="gender">
+                          Gender
+                        </InputLabel>
+                        <Select
+                          onChange={this.onValueSelected}
+                          name="gender"
+                          value={this.user.gender}
+                        >
+                          {
+                            genderList.map(gender =>
+                              <MenuItem
+                                value={gender.value}
+                                key={gender.name}
+                              >
+                                {gender.name}
+                              </MenuItem>
+                            )
+                          }
+                        </Select>
+                      </FormControl>
+                    </Grid>
 
-                    <Grid item xl={6} lg={6} md={6} sm={6} xs={6}>
+                    <Grid item xs={6}>
+                      <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                        <KeyboardDatePicker
+                          fullWidth={true}
+                          margin="normal"
+                          id="mui-pickers-date"
+                          label="Date picker"
+                          value={this.user.birthday}
+                          onChange={this.onDateChanged}
+                          KeyboardButtonProps={{
+                            'aria-label': 'change date',
+                          }}
+                        />
+                      </MuiPickersUtilsProvider>
+                    </Grid>
+
+                    <Grid item xs={6}>
                       <TextField
                         fullWidth={true}
                         onChange={this.onValueChanged}
@@ -149,7 +165,7 @@ export default class Auth extends React.Component<IAuthProps> {
                         label="Address"
                         required/>
                     </Grid>
-                    <Grid item xl={6} lg={6} md={6} sm={6} xs={6}>
+                    <Grid item xs={6}>
                       <TextField
                         fullWidth={true}
                         onChange={this.onValueChanged}
@@ -159,12 +175,33 @@ export default class Auth extends React.Component<IAuthProps> {
                         required/>
                     </Grid>
                   </Grid>
-                  <Button variant="contained" >
-                    Sign up
-                  </Button>
+                  <Grid item xs={12}>
+                    <Button variant="contained" type="submit">
+                      Sign up
+                    </Button>
+                  </Grid>
                 </form>
               ) : (
-                <div>Sign in</div>
+                <form onSubmit={this.onSignUp}>
+                  <Toolbar>
+                    <Typography variant="h6">
+                      Sign in
+                    </Typography>
+                  </Toolbar>
+
+                  <Grid container>
+                    <Credentials onValueChanged={this.onValueChanged} size={12}/>
+
+                    <Grid item xs={6}>
+                      <Button variant="contained" >
+                        Sign in
+                      </Button>
+                      <Button component={AdapterLink} to="/sign_up">
+                        Sign up
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </form>
               )
             }
           </Paper>
@@ -173,3 +210,35 @@ export default class Auth extends React.Component<IAuthProps> {
     )
   }
 }
+
+interface ICredentialsProps {
+  onValueChanged: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  size: boolean | "auto" | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | undefined;
+}
+const Credentials: React.FC<ICredentialsProps> = (props: ICredentialsProps) => {
+  return (
+    <>
+      <Grid item xs={props.size}>
+        <TextField
+          fullWidth={true}
+          onChange={props.onValueChanged}
+          name="email"
+          label="Email"
+          required/>
+      </Grid>
+      <Grid item xs={props.size}>
+        <TextField
+          fullWidth={true}
+          onChange={props.onValueChanged}
+          name="password"
+          label="Password"
+          type="password"
+          required/>
+      </Grid>
+    </>
+  )
+};
+
+const AdapterLink = React.forwardRef<HTMLAnchorElement, LinkProps>((props, ref) => (
+  <Link innerRef={ref as any} {...props}/>
+));
