@@ -1,7 +1,7 @@
-import React, { SyntheticEvent } from 'react';
+import React from 'react';
 import { inject, observer } from 'mobx-react';
-import { IUser } from '../../types/user';
-import Paper from '@material-ui/core/Paper'
+import { IContactInfo, IUser } from '../../types/user';
+import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import TextField from '@material-ui/core/TextField';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -18,10 +18,12 @@ import { Link, LinkProps } from 'react-router-dom';
 import { AuthStore } from '../../stores/authStore';
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 import DateFnsUtils from '@date-io/date-fns';
-import { getMilliseconds } from 'date-fns';
+import { getTime } from 'date-fns';
+import ow from 'ow';
+import { debounce } from '../../common/utils';
 
-interface IAuthState {
-  user: IUser
+interface IValidationRules {
+  [index: string]: Array<(fieldName: any) => any | void>
 }
 
 interface IAuthProps {
@@ -29,37 +31,141 @@ interface IAuthProps {
   authStore?: AuthStore;
 }
 
-const genderList = [
-  {
-    name: 'Male',
-    value: 'true',
-  },
-  {
-    name: 'Female',
-    value: 'false',
-  },
-];
+interface IAuthForm extends IUser, IContactInfo {}
 
 @inject('authStore')
 @observer
 export default class Auth extends React.Component<IAuthProps> {
   @observable.deep
-  user: IUser = {
+  user: IAuthForm = {
     email: '',
     password: '',
     firstName: '',
     lastName: '',
     gender: '',
     birthday: null,
-    contactInfo: {
-      phone: '',
-      address: '',
+
+    phone: '',
+    address: '',
+  };
+
+  @observable.deep
+  validationError = Object.assign({}, this.user);
+
+  public genderList = [
+    {
+      name: 'Male',
+      value: 'true',
+    },
+    {
+      name: 'Female',
+      value: 'false',
+    },
+  ];
+
+  validationRules: IValidationRules = {
+    email: [
+      (fn: string) => ow(fn, ow.string.validate(fn => ({
+          validator: !!fn,
+          message: () => 'Email is required field'
+        })
+      )),
+      (fn: string) => ow(fn, ow.string.validate(fn => ({
+          validator: /\S+@\S+\.\S+/.test(fn),
+          message: () => 'E-mail must be valid'
+        })
+      ))
+    ],
+    password: [
+      (fn: string) => ow(fn, ow.string.validate(fn => ({
+          validator: !!fn,
+          message: () => 'Password is required field'
+        })
+      )),
+      (fn: string) => ow(fn, ow.string.validate(fn => ({
+          validator: fn.length >= 8 && fn.length <= 32,
+          message: () => 'Password must be longer then 8 and less then 32 characters'
+        })
+      ))
+    ],
+    firstName: [
+      (fn: string) => ow(fn, ow.string.validate(fn => ({
+          validator: !!fn,
+          message: () => 'First name is required field'
+        })
+      )),
+      (fn: string) => ow(fn, ow.string.validate(fn => ({
+          validator: fn.length >= 1 && fn.length <= 20,
+          message: () => 'First name must be longer then 1 and less then 20 characters'
+        })
+      ))
+    ],
+    lastName: [
+      (fn: string) => ow(fn, ow.string.validate(fn => ({
+          validator: !!fn,
+          message: () => 'Last name is required field'
+        })
+      )),
+      (fn: string) => ow(fn, ow.string.validate(fn => ({
+          validator: fn.length >= 1 && fn.length <= 20,
+          message: () => 'Last name must be longer then 1 and less then 20 characters'
+        })
+      ))
+    ],
+
+    address: [
+      (fn: string) => ow(fn, ow.string.validate(fn => ({
+          validator: !!fn,
+          message: () => 'Address is required field'
+        })
+      )),
+      (fn: string) => ow(fn, ow.string.validate(fn => ({
+          validator: fn.length >= 4 && fn.length <= 64,
+          message: () => 'Please enter a valid address'
+        })
+      ))
+    ],
+    phone: [
+      (fn: string) => ow(fn, ow.string.validate(fn => ({
+          validator: !!fn,
+          message: () => 'Phone is required field'
+        })
+      )),
+      (fn: string) => ow(fn, ow.string.validate(fn => ({
+          validator: fn.length >= 4 && fn.length <= 12,
+          message: () => 'Please enter a valid phone number'
+        })
+      ))
+    ],
+  };
+
+  validateField = (fieldName: string): void => {
+    const value = this.user[fieldName];
+    try {
+      this.validationRules[fieldName].map((validate: (value: any) => any) => validate(value));
+      if (this.validationError[fieldName]) {
+        this.validationError[fieldName] = '';
+      }
+    } catch (err) {
+      this.validationError[fieldName] = err.message;
     }
+  };
+
+  isFormValid = () => {
+    let isValid = true;
+    for (let prop in this.user) {
+      if (!prop) {
+        isValid = false;
+      }
+    }
+    return true;
   };
 
   onValueChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, name } = e.target;
     this.user[name] = value;
+
+    debounce(() => this.validateField(name), 250);
   };
 
   onValueSelected = (e: React.ChangeEvent<{ name?: string; value: unknown }>) => {
@@ -70,14 +176,50 @@ export default class Auth extends React.Component<IAuthProps> {
   };
 
   onDateChanged = (date: Date | null) => {
-    this.user.birthday = getMilliseconds(date!);
-    console.error(this.user.birthday)
+    this.user.birthday = getTime(date!);
   };
 
   onSignUp = async (e: any) => {
     e.preventDefault();
-    await this.props.authStore!.signUp(this.user);
+    if (this.isFormValid()) {
+      const user: IUser = {
+        ...this.user,
+        contactInfo: {...this.user}
+      };
+      await this.props.authStore!.signUp(user);
+    }
   };
+
+  onSignIn = async (e: any) => {
+    e.preventDefault();
+    await this.props.authStore!.signIn(this.user);
+  };
+
+  credentials = (size: any) => (<>
+    <Grid item xs={size}>
+      <TextField
+        fullWidth={true}
+        onChange={this.onValueChanged}
+        name="email"
+        label="Email"
+        error={!!this.validationError.email}
+        helperText={this.validationError.email}
+        onBlur={() => this.validateField('email')}
+        required/>
+    </Grid>
+    <Grid item xs={size}>
+      <TextField
+        fullWidth={true}
+        onChange={this.onValueChanged}
+        type="password"
+        name="password"
+        label="Password"
+        error={!!this.validationError.password}
+        helperText={this.validationError.password}
+        onBlur={() => this.validateField('password')}
+        required/>
+    </Grid>
+  </>);
 
   public render() {
     return (
@@ -98,14 +240,18 @@ export default class Auth extends React.Component<IAuthProps> {
                   </Toolbar>
 
                   <Grid container>
-                    <Credentials onValueChanged={this.onValueChanged} size={6}/>
-
+                    {
+                      this.credentials(6)
+                    }
                     <Grid item xs={6}>
                       <TextField
                         fullWidth={true}
                         onChange={this.onValueChanged}
                         name="firstName"
                         label="First name"
+                        error={!!this.validationError.firstName}
+                        helperText={this.validationError.firstName}
+                        onBlur={() => this.validateField('firstName')}
                         required/>
                     </Grid>
                     <Grid item xs={6}>
@@ -114,6 +260,9 @@ export default class Auth extends React.Component<IAuthProps> {
                         onChange={this.onValueChanged}
                         name="lastName"
                         label="Last name"
+                        error={!!this.validationError.lastName}
+                        helperText={this.validationError.lastName}
+                        onBlur={() => this.validateField('lastName')}
                         required/>
                     </Grid>
 
@@ -125,10 +274,11 @@ export default class Auth extends React.Component<IAuthProps> {
                         <Select
                           onChange={this.onValueSelected}
                           name="gender"
+                          // onBlur={() => this.validateField('gender')}
                           value={this.user.gender}
                         >
                           {
-                            genderList.map(gender =>
+                            this.genderList.map(gender =>
                               <MenuItem
                                 value={gender.value}
                                 key={gender.name}
@@ -163,26 +313,36 @@ export default class Auth extends React.Component<IAuthProps> {
                         onChange={this.onValueChanged}
                         name="address"
                         label="Address"
+                        error={!!this.validationError.address}
+                        helperText={this.validationError.address}
+                        onBlur={() => this.validateField('address')}
                         required/>
                     </Grid>
                     <Grid item xs={6}>
                       <TextField
+                        type="number"
                         fullWidth={true}
                         onChange={this.onValueChanged}
                         name="phone"
                         label="Phone"
-                        type="number"
+                        error={!!this.validationError.phone}
+                        helperText={this.validationError.phone}
+                        onBlur={() => this.validateField('phone')}
                         required/>
                     </Grid>
                   </Grid>
                   <Grid item xs={12}>
-                    <Button variant="contained" type="submit">
+                    <Button
+                      variant="contained"
+                      fullWidth={true}
+                      type="submit"
+                    >
                       Sign up
                     </Button>
                   </Grid>
                 </form>
               ) : (
-                <form onSubmit={this.onSignUp}>
+                <form onSubmit={this.onSignIn}>
                   <Toolbar>
                     <Typography variant="h6">
                       Sign in
@@ -190,10 +350,29 @@ export default class Auth extends React.Component<IAuthProps> {
                   </Toolbar>
 
                   <Grid container>
-                    <Credentials onValueChanged={this.onValueChanged} size={12}/>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth={true}
+                        onChange={this.onValueChanged}
+                        name="email"
+                        label="Email"
+                        required/>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth={true}
+                        onChange={this.onValueChanged}
+                        name="password"
+                        label="Password"
+                        type="password"
+                        required/>
+                    </Grid>
 
                     <Grid item xs={6}>
-                      <Button variant="contained" >
+                      <Button
+                        type="submit"
+                        variant="contained"
+                      >
                         Sign in
                       </Button>
                       <Button component={AdapterLink} to="/sign_up">
@@ -210,34 +389,6 @@ export default class Auth extends React.Component<IAuthProps> {
     )
   }
 }
-
-interface ICredentialsProps {
-  onValueChanged: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  size: boolean | "auto" | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | undefined;
-}
-const Credentials: React.FC<ICredentialsProps> = (props: ICredentialsProps) => {
-  return (
-    <>
-      <Grid item xs={props.size}>
-        <TextField
-          fullWidth={true}
-          onChange={props.onValueChanged}
-          name="email"
-          label="Email"
-          required/>
-      </Grid>
-      <Grid item xs={props.size}>
-        <TextField
-          fullWidth={true}
-          onChange={props.onValueChanged}
-          name="password"
-          label="Password"
-          type="password"
-          required/>
-      </Grid>
-    </>
-  )
-};
 
 const AdapterLink = React.forwardRef<HTMLAnchorElement, LinkProps>((props, ref) => (
   <Link innerRef={ref as any} {...props}/>

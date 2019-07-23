@@ -15,13 +15,12 @@ export class RootStore {
       return console.error(err);
     }
 
-    const { status, statusText } = err.response;
+    const { status, data } = err.response;
 
     if (status === 401 || status === 403) {
       await authStore.signOut();
-    } else {
-      this.showSnackbar(`${action}: ${statusText}`, delay);
     }
+    this.showSnackbar(`${action}: ${data}`, delay);
   };
 
   @action

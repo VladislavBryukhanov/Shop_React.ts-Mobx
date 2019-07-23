@@ -5,9 +5,8 @@ export interface IUser extends ICredentials {
   lastName: string;
   gender: boolean | string;
   birthday: number | null;
-  contactInfo: IContactInfo;
-
-  [id: string]: string | boolean | null | number | IContactInfo;
+  contactInfo?: IContactInfo;
+  [id: string]: string | boolean | null | number | IContactInfo | undefined;
 }
 
 export interface ICredentials {
