@@ -2,7 +2,7 @@ import React from 'react';
 import { Route } from 'react-router-dom';
 import { Switch } from 'react-router';
 import Auth from './pages/Auth/auth.component';
-import SnackbarFeedback from './components/notification/snackbar.component';
+import SnackbarFeedback from './components/snackbar-feedback/snackbar-feedback.component';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 
 const theme = createMuiTheme({

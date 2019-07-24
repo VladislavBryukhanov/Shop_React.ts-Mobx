@@ -5,7 +5,7 @@ import authStore from './authStore';
 export class RootStore {
  @observable snackbar = {
    message: '',
-   duration: 500,
+   duration: 0,
    open: false
  };
 
@@ -16,7 +16,6 @@ export class RootStore {
     }
 
     const { status, data } = err.response;
-
     if (status === 401 || status === 403) {
       await authStore.signOut();
     }

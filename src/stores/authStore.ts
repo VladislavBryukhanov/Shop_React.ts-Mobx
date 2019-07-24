@@ -1,5 +1,5 @@
 import { observable, action, runInAction } from 'mobx';
-import { ICredentials, IUser } from '../types/user';
+import { IContactInfo, ICredentials, IUser } from '../types/user';
 
 import axios from 'axios';
 import rootStore from './rootStore';
@@ -24,9 +24,9 @@ export class AuthStore {
   }
 
   @action
-  async signUp(user: IUser) {
+  async signUp(user: IUser, contactInfo: IContactInfo) {
     try {
-      await axiosAuth.post('/sign_up', user);
+      await axiosAuth.post('/sign_up', { user, contactInfo });
       await this.getMe();
     } catch (err) {
       await rootStore.errorHandler(err, 'SignUp');

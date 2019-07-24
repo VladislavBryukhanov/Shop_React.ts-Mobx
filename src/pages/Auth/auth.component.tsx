@@ -14,13 +14,13 @@ import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import Button from '@material-ui/core/Button';
 import { observable } from 'mobx';
-import { Link, LinkProps } from 'react-router-dom';
 import { AuthStore } from '../../stores/authStore';
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 import DateFnsUtils from '@date-io/date-fns';
-import { getTime } from 'date-fns';
 import ow from 'ow';
+import { getUnixTime } from 'date-fns';
 import { debounce } from '../../common/utils';
+import { AdapterLink } from '../../components/material-button-link/material-button-link.component';
 
 interface IValidationRules {
   [index: string]: Array<(fieldName: any) => any | void>
@@ -152,10 +152,9 @@ export default class Auth extends React.Component<IAuthProps> {
   };
 
   isFormValid = () => {
-    let isValid = true;
     for (let prop in this.user) {
       if (!prop) {
-        isValid = false;
+        return false;
       }
     }
     return true;
@@ -176,17 +175,33 @@ export default class Auth extends React.Component<IAuthProps> {
   };
 
   onDateChanged = (date: Date | null) => {
-    this.user.birthday = getTime(date!);
+    if (date) {
+      this.user.birthday = getUnixTime(date);
+    } else {
+      this.user.birthday = null;
+    }
   };
 
   onSignUp = async (e: any) => {
     e.preventDefault();
+
+    //_.pickBy ... _.identity
     if (this.isFormValid()) {
-      const user: IUser = {
-        ...this.user,
-        contactInfo: {...this.user}
-      };
-      await this.props.authStore!.signUp(user);
+      const {
+        email,
+        password,
+        firstName,
+        lastName,
+        gender,
+        birthday,
+        phone,
+        address,
+      } = this.user;
+
+      await this.props.authStore!.signUp(
+        { email, password, firstName, lastName, gender, birthday },
+        { phone, address }
+      )
     }
   };
 
@@ -274,7 +289,6 @@ export default class Auth extends React.Component<IAuthProps> {
                         <Select
                           onChange={this.onValueSelected}
                           name="gender"
-                          // onBlur={() => this.validateField('gender')}
                           value={this.user.gender}
                         >
                           {
@@ -333,13 +347,14 @@ export default class Auth extends React.Component<IAuthProps> {
                   </Grid>
                   <Grid item xs={12}>
                     <Button
-                      variant="contained"
                       fullWidth={true}
+                      variant="contained"
                       type="submit"
                     >
                       Sign up
                     </Button>
                   </Grid>
+
                 </form>
               ) : (
                 <form onSubmit={this.onSignIn}>
@@ -389,7 +404,3 @@ export default class Auth extends React.Component<IAuthProps> {
     )
   }
 }
-
-const AdapterLink = React.forwardRef<HTMLAnchorElement, LinkProps>((props, ref) => (
-  <Link innerRef={ref as any} {...props}/>
-));
