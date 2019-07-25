@@ -4,7 +4,8 @@ import { ICategory } from '../types/category';
 import axios from 'axios';
 import rootStore from './rootStore';
 const axiosCategory = axios.create({
-  baseURL: `${process.env.REACT_APP_CORE_API}/categories`
+  baseURL: `${process.env.REACT_APP_CORE_API}/categories`,
+  withCredentials: true
 });
 
 export class CategoriesStore {
@@ -26,9 +27,9 @@ export class CategoriesStore {
   @action
   async createCategory(categoryName: string) {
     try {
-      const { data: resCategory } = await axiosCategory.post('create_category', categoryName);
+      const { data: resCategory } = await axiosCategory.post(
+        '/create_category', { categoryName });
       runInAction(() => {
-        // fixme is reactive?
         this.categories.push(resCategory);
       })
     } catch (err) {
@@ -37,9 +38,9 @@ export class CategoriesStore {
   }
 
   @action
-  async removeCategory(categoryId: string) {
+  async removeCategory(categoryId: number) {
     try {
-      await axiosCategory.delete(`/remove_category${categoryId}`);
+      await axiosCategory.delete(`/remove_category/${categoryId}`);
       runInAction(() => {
         const index = this.categories.findIndex(({ id }) => id === categoryId);
         this.categories.splice(index, 1);

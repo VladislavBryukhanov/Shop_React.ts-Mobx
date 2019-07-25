@@ -142,7 +142,7 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
               <ListItemIcon>
                 <Icon>settings_applications</Icon>
               </ListItemIcon>
-              <ListItemText primary="Categories" />
+              <ListItemText primary="Admin" />
               {adminCollapsed ? <ExpandLess /> : <ExpandMore />}
             </ListItem>
             <Collapse in={drawerOpened && adminCollapsed} timeout="auto" unmountOnExit>
@@ -155,7 +155,11 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
                 </ListItem>
 
 
-                <ListItem button>
+                <ListItem
+                  button
+                  component={AdapterLink}
+                  to="/categories_manager"
+                >
                   <ListItemText inset primary="Manage categories" />
                   <ListItemIcon>
                     <Icon>add_to_photos</Icon>
