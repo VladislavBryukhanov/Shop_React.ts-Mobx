@@ -4,8 +4,9 @@ import { Redirect, Route } from 'react-router-dom';
 import { AuthState } from '../../common/constants';
 import { AuthStore } from '../../stores/authStore';
 import { RouteProps } from 'react-router';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import Grid from '@material-ui/core/Grid';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import NavigationDrawer from '../navigation-drawer/navigation-drawer.component';
 
 interface IRouteGuard extends RouteProps{
   requiredRole?: string;
@@ -33,9 +34,9 @@ export class RouteGuard extends React.Component<IRouteGuard> {
         redirectTo = '/';
       } else if (requiredRole && (me!.Role!.name !== requiredRole)) {
         // TODO redirect to 404 page
-        redirectTo = '/product_list';
+        redirectTo = '/top_products';
       } else if ((!requiredAuth && !requiredRole) && (authState !== AuthState.SignedOut)) {
-        redirectTo = '/product_list';
+        redirectTo = '/top_products';
       }
     }
 
@@ -46,7 +47,10 @@ export class RouteGuard extends React.Component<IRouteGuard> {
           {redirectTo ? (
             <Redirect to={redirectTo}/>
           ) : (
-            <Route {...this.props}/>
+            <div>
+              {authState === AuthState.SignedIn && <NavigationDrawer/>}
+              <Route {...this.props}/>
+            </div>
           )}
         </>
       ) : (

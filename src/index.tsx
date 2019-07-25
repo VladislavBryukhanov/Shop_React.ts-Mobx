@@ -5,12 +5,14 @@ import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'mobx-react';
 import authStore from './stores/authStore';
 import rootStore from './stores/rootStore';
+import categoriesStore from './stores/categoriesStore';
 import App from './App';
 import './index.scss'
 
 const stores = {
   rootStore,
   authStore,
+  categoriesStore,
 };
 
 ReactDOM.render((

@@ -6,8 +6,8 @@ import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import { ProductListPage } from './pages/ProductList/product-list.component';
 import { RouteGuard } from './components/route-guard/route-guard.component';
 import { NotFoundPage } from './pages/NotFound/not-found.component';
+import CssBaseline from '@material-ui/core/CssBaseline';
 import './App.scss'
-import { NavigationDrawer } from './components/navigation-drawer/navigation-drawer.component';
 
 const theme = createMuiTheme({
   palette: {
@@ -36,7 +36,8 @@ const App: React.FC = () => {
     <div className="AppBody">
       <MuiThemeProvider theme={theme}>
         <SnackbarFeedback/>
-        <NavigationDrawer/>
+        <CssBaseline />
+
         <Switch>
           <RouteGuard
             exact path="/"
@@ -45,14 +46,20 @@ const App: React.FC = () => {
 
           <RouteGuard
             exact path="/sign_up"
-            component={
+            render={
               (props: any) => <AuthPage {...props} isSignUp={true} />
             }
           />
 
           <RouteGuard
             requiredAuth={true}
-            exact path="/product_list"
+            exact path="/top_products"
+            component={ProductListPage}
+          />
+
+          <RouteGuard
+            requiredAuth={true}
+            exact path="/products/:category"
             component={ProductListPage}
           />
 

@@ -1,9 +1,9 @@
 import { observable, action, runInAction } from 'mobx';
 import { IContactInfo, ICredentials, IUser } from '../types/user';
 
-import axios from 'axios';
 import rootStore from './rootStore';
 import { AuthState } from '../common/constants';
+import axios from 'axios';
 const axiosAuth = axios.create({
   baseURL: process.env.REACT_APP_CORE_API,
   withCredentials: true,
@@ -49,9 +49,7 @@ export class AuthStore {
   @action
   async getMe() {
     try {
-      const me = await axiosAuth.get('/me')
-        .then(res => res.data);
-
+      const { data: me } = await axiosAuth.get('/me');
       runInAction(() => {
         this.me = me;
         this.authState = AuthState.SignedIn;
