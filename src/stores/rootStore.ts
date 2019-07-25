@@ -17,7 +17,7 @@ export class RootStore {
 
     const { status, data } = err.response;
     if (status === 401 || status === 403) {
-      await authStore.signOut();
+      return await authStore.signOut();
     }
     this.showSnackbar(`${action}: ${data}`, delay);
   };

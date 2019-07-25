@@ -1,9 +1,13 @@
 import React from 'react';
-import { Route } from 'react-router-dom';
 import { Switch } from 'react-router';
-import Auth from './pages/Auth/auth.component';
+import AuthPage from './pages/Auth/auth.component';
 import SnackbarFeedback from './components/snackbar-feedback/snackbar-feedback.component';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
+import { ProductListPage } from './pages/ProductList/product-list.component';
+import { RouteGuard } from './components/route-guard/route-guard.component';
+import { NotFoundPage } from './pages/NotFound/not-found.component';
+import './App.scss'
+import { NavigationDrawer } from './components/navigation-drawer/navigation-drawer.component';
 
 const theme = createMuiTheme({
   palette: {
@@ -29,17 +33,37 @@ const theme = createMuiTheme({
 
 const App: React.FC = () => {
   return (
-    <>
+    <div className="AppBody">
       <MuiThemeProvider theme={theme}>
         <SnackbarFeedback/>
+        <NavigationDrawer/>
         <Switch>
-          <Route exact path="/" component={Auth}/>
-          <Route path="/sign_up" component={
-            (props: any) => <Auth {...props} isSignUp={true} />
-          } />
+          <RouteGuard
+            exact path="/"
+            component={AuthPage}
+          />
+
+          <RouteGuard
+            exact path="/sign_up"
+            component={
+              (props: any) => <AuthPage {...props} isSignUp={true} />
+            }
+          />
+
+          <RouteGuard
+            requiredAuth={true}
+            exact path="/product_list"
+            component={ProductListPage}
+          />
+
+          {/*Fixme*/}
+        {/*  <RouteGuard
+            path="*"
+            component={NotFoundPage}
+          />*/}
         </Switch>
       </MuiThemeProvider>
-    </>
+    </div>
   );
 };
 

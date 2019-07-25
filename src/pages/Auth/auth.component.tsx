@@ -35,7 +35,7 @@ interface IAuthForm extends IUser, IContactInfo {}
 
 @inject('authStore')
 @observer
-export default class Auth extends React.Component<IAuthProps> {
+export default class AuthPage extends React.Component<IAuthProps> {
   @observable.deep
   user: IAuthForm = {
     email: '',

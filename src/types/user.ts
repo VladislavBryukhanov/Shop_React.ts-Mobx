@@ -6,7 +6,8 @@ export interface IUser extends ICredentials {
   gender: boolean | string;
   birthday: number | null;
   contactInfo?: IContactInfo;
-  [id: string]: string | boolean | null | number | IContactInfo | undefined;
+  [id: string]: string | boolean | null | number | IContactInfo | undefined | IRole;
+  Role?: IRole;
 }
 
 export interface ICredentials {
@@ -17,4 +18,8 @@ export interface ICredentials {
 export interface IContactInfo {
   address: string;
   phone: string;
+}
+
+export interface IRole {
+  name: string;
 }
