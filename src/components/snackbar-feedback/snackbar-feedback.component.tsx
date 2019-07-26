@@ -8,11 +8,9 @@ interface ISnackbarProps {
   rootStore?: RootStore
 }
 
-@inject('rootStore')
-@observer
-export default class SnackbarFeedback extends React.Component<ISnackbarProps> {
-  render() {
-    const { snackbar, hideSnackbar } = this.props.rootStore!;
+export const SnackbarFeedback: React.FC<ISnackbarProps> = inject('rootStore')(
+  observer((props: ISnackbarProps) => {
+    const { snackbar, hideSnackbar } = props.rootStore!;
 
     return (
       <Snackbar
@@ -28,4 +26,4 @@ export default class SnackbarFeedback extends React.Component<ISnackbarProps> {
       />
     )
   }
-}
+));

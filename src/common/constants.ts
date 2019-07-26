@@ -11,10 +11,10 @@ export const USERS_ONE_PAGE_LIMIT = 5;
 export const FileResources = {
   IMAGE_MAX_SIZE: 5 * 1024 * 1024,
 
-  /*defaultPreview: require('@/assets/img/prod_preview.jpg'),
-  logo: require('@/assets/img/logo.png'),
-  seller: require('@/assets/img/chat/seller.png'),
-  customer: require('@/assets/img/chat/customer.png')*/
+  logo: `${process.env.PUBLIC_URL}/logo.svg`,
+  // defaultPreview: require('@/assets/img/prod_preview.jpg'),
+  // seller: require('@/assets/img/chat/seller.png'),
+  // customer: require('@/assets/img/chat/customer.png')
 };
 
 export const Roles = {

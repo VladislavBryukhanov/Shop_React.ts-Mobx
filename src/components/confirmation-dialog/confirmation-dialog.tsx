@@ -18,23 +18,24 @@ const dialogTheme = createMuiTheme({
 interface IConfirmationDialog {
   rootStore?: RootStore
 }
-export const ConfirmationDialog: React.FC<IConfirmationDialog> = inject('rootStore')
-(observer((props: IConfirmationDialog) => {
-  const { open, title, message } = props.rootStore!.dialog;
-  const { dialogResult } = props.rootStore!;
+export const ConfirmationDialog: React.FC<IConfirmationDialog> = inject('rootStore')(
+  observer((props: IConfirmationDialog) => {
+    const { open, title, message } = props.rootStore!.dialog;
+    const { dialogResult } = props.rootStore!;
 
-  return (
-    <MuiThemeProvider theme={dialogTheme}>
-      <Dialog open={open} onClose={() => dialogResult(false)}>
-        <DialogTitle>{title}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>{message}</DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button color="primary" onClick={() => dialogResult(false)}>cancel</Button>
-          <Button color="secondary" onClick={() => dialogResult(true)} autoFocus>Confirm</Button>
-        </DialogActions>
-      </Dialog>
-    </MuiThemeProvider>
-  )
-}));
+    return (
+      <MuiThemeProvider theme={dialogTheme}>
+        <Dialog open={open} onClose={() => dialogResult(false)}>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogContent>
+            <DialogContentText>{message}</DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button color="primary" onClick={() => dialogResult(false)}>cancel</Button>
+            <Button color="secondary" onClick={() => dialogResult(true)} autoFocus>Confirm</Button>
+          </DialogActions>
+        </Dialog>
+      </MuiThemeProvider>
+    )
+  }
+));

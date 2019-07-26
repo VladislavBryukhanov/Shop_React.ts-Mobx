@@ -20,6 +20,7 @@ import { inject, observer } from 'mobx-react';
 import { AuthStore } from '../../stores/authStore';
 import { CategoriesStore } from '../../stores/categoriesStore';
 import { AdapterLink } from '../material-button-link/material-button-link.component';
+import { FileResources } from '../../common/constants';
 
 const drawerWidth = 310;
 const styles = (theme: Theme) => createStyles({
@@ -113,7 +114,7 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
           open={drawerOpened}
         >
           <div className={classes.toolbar}>
-            {drawerOpened && <Avatar src="./logo.svg" className={classes.logo}/>}
+            {drawerOpened && <Avatar src={FileResources.logo} className={classes.logo}/>}
             <IconButton onClick={() => this.setState({ drawerOpened: !drawerOpened })} >
               {drawerOpened ? <ChevronLeftIcon /> : <ChevronRightIcon />}
             </IconButton>
@@ -139,7 +140,7 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
                 <ListItem
                   button key={category.id}
                   component={AdapterLink}
-                  to="/products">
+                  to={`/products/${category.name}`}>
                   <ListItemText inset primary={category.name} />
                 </ListItem>
               ))}

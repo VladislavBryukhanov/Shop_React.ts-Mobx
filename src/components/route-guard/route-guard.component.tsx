@@ -7,10 +7,12 @@ import { RouteProps } from 'react-router';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import NavigationDrawer from '../navigation-drawer/navigation-drawer.component';
+import { NotFoundPage } from '../../pages/NotFound/not-found.component';
 
 interface IRouteGuard extends RouteProps{
-  requiredRole?: string;
+  requiredRoles?: string[];
   requiredAuth?: boolean;
+  requiredGuest?: boolean;
   authStore?: AuthStore;
 }
 
@@ -23,40 +25,43 @@ export class RouteGuard extends React.Component<IRouteGuard> {
     }
   }
 
-  render() {
+  visibleContent() {
     const { authState, me } = this.props.authStore!;
-    const { requiredAuth, requiredRole } = this.props;
-
-    let redirectTo = '';
+    const { requiredAuth, requiredGuest, requiredRoles } = this.props;
 
     if (authState) {
-      if (requiredAuth && !(authState === AuthState.SignedIn)) {
-        redirectTo = '/';
-      } else if (requiredRole && (me!.Role!.name !== requiredRole)) {
-        // TODO redirect to 404 page
-        redirectTo = '/top_products';
-      } else if ((!requiredAuth && !requiredRole) && (authState !== AuthState.SignedOut)) {
-        redirectTo = '/top_products';
+      if ((requiredAuth || requiredRoles) && authState === AuthState.SignedOut) {
+        return <Redirect to='/'/>
+      } else if (requiredGuest && authState === AuthState.SignedIn) {
+        return <Redirect to='top_products'/>
+      } else if (requiredRoles && (!requiredRoles.includes(me!.Role!.name))) {
+        // return <NotFoundPage/>;
+        // fixme, redirect from 404 to '/' ??? where Toolbar?
+        // fixme nav link
+        // fixme bug логаут и сразу логин и не та роль (мб и юзер)
+        //refactoring, improved router guard, fixed routing bugs
       }
     }
 
     return (
       <>
+        {authState === AuthState.SignedIn && <NavigationDrawer/>}
+        <div className="Page">
+          <Route {...this.props}/>
+        </div>
+      </>
+    )
+  }
+
+  render() {
+    return (
+      <>
       {this.props.authStore!.authState ? (
-        <>
-          {redirectTo ? (
-            <Redirect to={redirectTo}/>
-          ) : (
-            <div>
-              {authState === AuthState.SignedIn && <NavigationDrawer/>}
-              <Route {...this.props}/>
-            </div>
-          )}
-        </>
+        this.visibleContent()
       ) : (
         <Grid container
-              justify="center"
               className="Page"
+              justify="center"
               alignItems="center"
         >
           <CircularProgress size={100}/>

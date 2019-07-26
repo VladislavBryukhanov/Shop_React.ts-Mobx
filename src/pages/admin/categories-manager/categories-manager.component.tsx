@@ -19,90 +19,91 @@ interface ICategoriesManagerProps {
   categoriesStore?: CategoriesStore
   rootStore?: RootStore
 }
-export const CategoriesManagerPage: React.FC<ICategoriesManagerProps> = inject('categoriesStore', 'rootStore')
-(observer((props: ICategoriesManagerProps) => {
-  const [ category, setCategory ] = useState('');
+export const CategoriesManagerPage: React.FC<ICategoriesManagerProps> = inject('categoriesStore', 'rootStore')(
+    observer((props: ICategoriesManagerProps) => {
+    const [ category, setCategory ] = useState('');
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCategory(e.target.value);
-  };
+    const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setCategory(e.target.value);
+    };
 
-  const validateCategory = (category: string) => {
-    if (category.length >= 1 && category.length <= 32) {
-      return true;
-    }
-    props.rootStore!.showSnackbar(
-      'Category must be longer then 1 and less then 32 characters!',
-      5000
-    );
-  };
+    const validateCategory = (category: string) => {
+      if (category.length >= 1 && category.length <= 32) {
+        return true;
+      }
+      props.rootStore!.showSnackbar(
+        'Category must be longer then 1 and less then 32 characters!',
+        5000
+      );
+    };
 
-  const createCategory = async () => {
-    if (validateCategory(category)) {
+    const createCategory = async () => {
+      if (validateCategory(category)) {
+        const confirmation = await props.rootStore!.openConfirmationDialog(
+          'Are you sure?',
+          `Do you want create category "${category}"?`
+        );
+
+        if (confirmation) {
+          await props.categoriesStore!.createCategory(category);
+          setCategory('');
+        }
+      }
+    };
+
+    const removeCategory = async (category: ICategory) => {
       const confirmation = await props.rootStore!.openConfirmationDialog(
         'Are you sure?',
-        `Do you want create category "${category}"?`
+        `Do you want delete category "${category.name}" with all attached products?`
       );
 
       if (confirmation) {
-        await props.categoriesStore!.createCategory(category);
-        setCategory('');
+        await props.categoriesStore!.removeCategory(category.id);
       }
-    }
-  };
+    };
 
-  const removeCategory = async (category: ICategory) => {
-    const confirmation = await props.rootStore!.openConfirmationDialog(
-      'Are you sure?',
-      `Do you want delete category "${category.name}" with all attached products?`
-    );
-
-    if (confirmation) {
-      await props.categoriesStore!.removeCategory(category.id);
-    }
-  };
-
-  return (
-    <Grid container>
-      <Grid item xl={4} lg={4} md={3} sm={2} xs={1}/>
-      <Grid item xl={4} lg={4} md={6} sm={8} xs={10}>
-        <Paper elevation={6}>
-          <TextField
-            fullWidth={true}
-            variant="filled"
-            label="Category"
-            value={category}
-            onChange={onChange}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton edge="end" onClick={createCategory}>
-                    <Icon color="primary">add</Icon>
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-          <List>
-            <Divider light />
-            {
-              props.categoriesStore!.categories.map(category => (
-                <div key={category.id}>
-                  <ListItem button>
-                    <ListItemText primary={category.name}/>
-                    <ListItemSecondaryAction>
-                      <IconButton edge="end" onClick={() => removeCategory(category)}>
-                        <Icon color="error">close</Icon>
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                  <Divider light />
-                </div>
-              ))
-            }
-          </List>
-        </Paper>
+    return (
+      <Grid container>
+        <Grid item xl={4} lg={4} md={3} sm={2} xs={1}/>
+        <Grid item xl={4} lg={4} md={6} sm={8} xs={10}>
+          <Paper elevation={6}>
+            <TextField
+              fullWidth={true}
+              variant="filled"
+              label="Category"
+              value={category}
+              onChange={onChange}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton edge="end" onClick={createCategory}>
+                      <Icon color="primary">add</Icon>
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <List>
+              <Divider light />
+              {
+                props.categoriesStore!.categories.map(category => (
+                  <div key={category.id}>
+                    <ListItem button>
+                      <ListItemText primary={category.name}/>
+                      <ListItemSecondaryAction>
+                        <IconButton edge="end" onClick={() => removeCategory(category)}>
+                          <Icon color="error">close</Icon>
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                    <Divider light />
+                  </div>
+                ))
+              }
+            </List>
+          </Paper>
+        </Grid>
       </Grid>
-    </Grid>
-  )
-}));
+    )
+  }
+));
