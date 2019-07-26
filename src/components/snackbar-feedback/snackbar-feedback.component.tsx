@@ -20,7 +20,7 @@ export default class SnackbarFeedback extends React.Component<ISnackbarProps> {
         autoHideDuration={snackbar.duration}
         message={snackbar.message}
         action={
-          <Button color="inherit" size="small" onClick={hideSnackbar}>
+          <Button color="secondary" size="small" onClick={hideSnackbar}>
             Close
           </Button>
         }

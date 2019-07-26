@@ -12,12 +12,14 @@ import Icon from '@material-ui/core/Icon';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import { ICategory } from '../../../types/category';
+import { RootStore } from '../../../stores/rootStore';
 
 interface ICategoriesManagerProps {
   categoriesStore?: CategoriesStore
+  rootStore?: RootStore
 }
-
-export const CategoriesManagerPage: React.FC<ICategoriesManagerProps> = inject('categoriesStore')
+export const CategoriesManagerPage: React.FC<ICategoriesManagerProps> = inject('categoriesStore', 'rootStore')
 (observer((props: ICategoriesManagerProps) => {
   const [ category, setCategory ] = useState('');
 
@@ -25,16 +27,41 @@ export const CategoriesManagerPage: React.FC<ICategoriesManagerProps> = inject('
     setCategory(e.target.value);
   };
 
+  const validateCategory = (category: string) => {
+    if (category.length >= 1 && category.length <= 32) {
+      return true;
+    }
+    props.rootStore!.showSnackbar(
+      'Category must be longer then 1 and less then 32 characters!',
+      5000
+    );
+  };
+
   const createCategory = async () => {
-    await props.categoriesStore!.createCategory(category);
-    setCategory('');
+    if (validateCategory(category)) {
+      const confirmation = await props.rootStore!.openConfirmationDialog(
+        'Are you sure?',
+        `Do you want create category "${category}"?`
+      );
+
+      if (confirmation) {
+        await props.categoriesStore!.createCategory(category);
+        setCategory('');
+      }
+    }
   };
 
-  const removeCategory = async (id: number) => {
-    await props.categoriesStore!.removeCategory(id);
+  const removeCategory = async (category: ICategory) => {
+    const confirmation = await props.rootStore!.openConfirmationDialog(
+      'Are you sure?',
+      `Do you want delete category "${category.name}" with all attached products?`
+    );
+
+    if (confirmation) {
+      await props.categoriesStore!.removeCategory(category.id);
+    }
   };
 
-  //TODO validate, confirm
   return (
     <Grid container>
       <Grid item xl={4} lg={4} md={3} sm={2} xs={1}/>
@@ -64,8 +91,8 @@ export const CategoriesManagerPage: React.FC<ICategoriesManagerProps> = inject('
                   <ListItem button>
                     <ListItemText primary={category.name}/>
                     <ListItemSecondaryAction>
-                      <IconButton edge="end" onClick={() => removeCategory(category.id)}>
-                        <Icon color="error">delete</Icon>
+                      <IconButton edge="end" onClick={() => removeCategory(category)}>
+                        <Icon color="error">close</Icon>
                       </IconButton>
                     </ListItemSecondaryAction>
                   </ListItem>

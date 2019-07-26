@@ -67,9 +67,9 @@ interface INavigationDrawerState {
   drawerOpened: boolean;
   categoriesCollapsed: boolean;
   adminCollapsed: boolean;
+  [key: string]: boolean;
 }
-@inject('authStore')
-@inject('categoriesStore')
+@inject('authStore', 'categoriesStore')
 @observer
 class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigationDrawerState> {
   constructor(props: INavigationDrawerProps) {
@@ -84,6 +84,13 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
   componentDidMount() {
     this.props.categoriesStore!.fetchCategories();
   }
+
+  openCollapse = (name: string) => {
+    if (!this.state.drawerOpened) {
+      this.setState({ drawerOpened: true });
+    }
+    this.setState({ [name]: !this.state[name] });
+  };
 
   public render() {
     const { classes } = this.props;
@@ -120,7 +127,7 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
               <ListItemText primary="Top popular" />
             </ListItem>
 
-            <ListItem button onClick={() => this.setState({ categoriesCollapsed: !categoriesCollapsed })}>
+            <ListItem button onClick={() => this.openCollapse('categoriesCollapsed')}>
               <ListItemIcon>
                 <Icon>dashboard</Icon>
               </ListItemIcon>
@@ -138,7 +145,7 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
               ))}
             </Collapse>
 
-            <ListItem button onClick={() => this.setState({ adminCollapsed: !adminCollapsed })}>
+            <ListItem button onClick={() => this.openCollapse('adminCollapsed')}>
               <ListItemIcon>
                 <Icon>settings_applications</Icon>
               </ListItemIcon>
@@ -146,14 +153,12 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
               {adminCollapsed ? <ExpandLess /> : <ExpandMore />}
             </ListItem>
             <Collapse in={drawerOpened && adminCollapsed} timeout="auto" unmountOnExit>
-
                 <ListItem button>
                   <ListItemText inset primary="Create product" />
                   <ListItemIcon>
                     <Icon>add</Icon>
                   </ListItemIcon>
                 </ListItem>
-
 
                 <ListItem
                   button
@@ -166,14 +171,12 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
                   </ListItemIcon>
                 </ListItem>
 
-
                 <ListItem button>
                   <ListItemText inset primary="Users" />
                   <ListItemIcon>
                     <Icon>people</Icon>
                   </ListItemIcon>
                 </ListItem>
-
             </Collapse>
 
             <ListItem button>
@@ -196,7 +199,6 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
               </ListItemIcon>
               <ListItemText primary="Sign out" />
             </ListItem>
-
           </List>
         </Drawer>
       </div>

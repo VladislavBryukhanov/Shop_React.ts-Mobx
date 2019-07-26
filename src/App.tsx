@@ -2,34 +2,37 @@ import React from 'react';
 import { Switch } from 'react-router';
 import AuthPage from './pages/Auth/auth.component';
 import SnackbarFeedback from './components/snackbar-feedback/snackbar-feedback.component';
+import CssBaseline from '@material-ui/core/CssBaseline';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import { ProductListPage } from './pages/ProductList/product-list.component';
 import { CategoriesManagerPage } from './pages/admin/categories-manager/categories-manager.component';
 import { RouteGuard } from './components/route-guard/route-guard.component';
+import { ConfirmationDialog } from './components/confirmation-dialog/confirmation-dialog';
 import { NotFoundPage } from './pages/NotFound/not-found.component';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import './App.scss'
 import { Roles } from './common/constants';
+import './App.scss';
 
 const theme = createMuiTheme({
   palette: {
     type: 'dark',
-    // primary: '#1A567B',
-    // secondary: {
-    //   main: '#f44336',
-    // },
     secondary: {
+      main: '#1A567B'
+    },
+    primary: {
+      main: '#61dafb',
+    },
+/*    secondary: {
       light: '#6B9BC2',
       main: '#558DC4',
       dark: '#1A567B',
       contrastText: '#fff',
-    },
-    primary: {
+    },*/
+/*    primary: {
       light: '#61dafb',
       main: '#00aca2',
       dark: '#00726a',
       contrastText: '#243443',
-    },
+    },*/
     error: {
       main: '#cd544e',
       contrastText: '#1A567B',
@@ -42,6 +45,7 @@ const App: React.FC = () => {
     <div className="AppBody">
       <MuiThemeProvider theme={theme}>
         <SnackbarFeedback/>
+        <ConfirmationDialog/>
         <CssBaseline />
 
         <Switch>
