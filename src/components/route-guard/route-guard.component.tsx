@@ -8,6 +8,7 @@ import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import NavigationDrawer from '../navigation-drawer/navigation-drawer.component';
 import { NotFoundPage } from '../../pages/NotFound/not-found.component';
+import { ToolBar } from '../toolbar/toolbar.component';
 
 interface IRouteGuard extends RouteProps{
   requiredRoles?: string[];
@@ -33,31 +34,29 @@ export class RouteGuard extends React.Component<IRouteGuard> {
       if ((requiredAuth || requiredRoles) && authState === AuthState.SignedOut) {
         return <Redirect to='/'/>
       } else if (requiredGuest && authState === AuthState.SignedIn) {
-        return <Redirect to='top_products'/>
-      } else if (requiredRoles && (!requiredRoles.includes(me!.Role!.name))) {
-        // return <NotFoundPage/>;
-        // fixme, redirect from 404 to '/' ??? where Toolbar?
-        // fixme nav link
-        // fixme bug логаут и сразу логин и не та роль (мб и юзер)
-        //refactoring, improved router guard, fixed routing bugs
+        return <Redirect to='/top_products'/>
+      } else if (requiredRoles && !(requiredRoles.includes(me!.Role!.name))) {
+        return <NotFoundPage/>;
       }
     }
 
     return (
-      <>
-        {authState === AuthState.SignedIn && <NavigationDrawer/>}
-        <div className="Page">
-          <Route {...this.props}/>
-        </div>
-      </>
+      <div className="Page">
+        <Route {...this.props}/>
+      </div>
     )
   }
 
   render() {
+    const { authState } = this.props.authStore!;
+
     return (
       <>
-      {this.props.authStore!.authState ? (
-        this.visibleContent()
+      {authState ? (
+        <>
+          {authState === AuthState.SignedIn ? <NavigationDrawer/> : <ToolBar/>}
+          {this.visibleContent()}
+        </>
       ) : (
         <Grid container
               className="Page"

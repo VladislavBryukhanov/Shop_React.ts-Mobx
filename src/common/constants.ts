@@ -11,7 +11,7 @@ export const USERS_ONE_PAGE_LIMIT = 5;
 export const FileResources = {
   IMAGE_MAX_SIZE: 5 * 1024 * 1024,
 
-  logo: `${process.env.PUBLIC_URL}/logo.svg`,
+  logo: require('../assets/img/logo.svg'),
   // defaultPreview: require('@/assets/img/prod_preview.jpg'),
   // seller: require('@/assets/img/chat/seller.png'),
   // customer: require('@/assets/img/chat/customer.png')

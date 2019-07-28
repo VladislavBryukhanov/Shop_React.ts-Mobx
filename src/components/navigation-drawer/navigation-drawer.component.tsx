@@ -1,6 +1,6 @@
 import React from 'react';
 import clsx from 'clsx';
-import { withStyles, Theme, createStyles } from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
 import List from '@material-ui/core/List';
 import Divider from '@material-ui/core/Divider';
@@ -20,44 +20,8 @@ import { inject, observer } from 'mobx-react';
 import { AuthStore } from '../../stores/authStore';
 import { CategoriesStore } from '../../stores/categoriesStore';
 import { AdapterLink } from '../material-button-link/material-button-link.component';
+import { styles } from './navigation-drawer.styles';
 import { FileResources } from '../../common/constants';
-
-const drawerWidth = 310;
-const styles = (theme: Theme) => createStyles({
-  drawer: {
-    width: drawerWidth,
-    flexShrink: 0,
-    whiteSpace: 'nowrap',
-  },
-  drawerOpen: {
-    width: drawerWidth,
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  },
-  drawerClose: {
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    overflowX: 'hidden',
-    width: theme.spacing(7) + 1,
-    [theme.breakpoints.up('sm')]: {
-      width: theme.spacing(7) + 1,
-    },
-  },
-  toolbar: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    padding: '0 4px',
-    ...theme.mixins.toolbar,
-  },
-  logo: {
-    display: 'contents',
-  }
-});
 
 interface INavigationDrawerProps {
   authStore?: AuthStore;

@@ -238,7 +238,7 @@ export class AuthPage extends React.Component<IAuthProps> {
 
   public render() {
     return (
-      <Grid container>
+      <Grid container className="AuthPage">
         <Grid item xl={4} lg={4} md={3} sm={2} xs={1}/>
         <Grid item xl={4} lg={4} md={6} sm={8} xs={10}>
           <Paper elevation={6}>

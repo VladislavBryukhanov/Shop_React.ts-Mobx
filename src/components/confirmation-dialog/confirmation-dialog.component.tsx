@@ -1,19 +1,9 @@
 import React from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@material-ui/core';
 import { inject, observer } from 'mobx-react';
-import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
+import {  MuiThemeProvider } from '@material-ui/core';
 import { RootStore } from '../../stores/rootStore';
-
-const dialogTheme = createMuiTheme({
-  palette: {
-    secondary: {
-      main: '#1A567B'
-    },
-    primary: {
-      main: '#cd544e',
-    },
-  },
-});
+import { dialogTheme } from './confirmation-dialog.theme';
 
 interface IConfirmationDialog {
   rootStore?: RootStore
