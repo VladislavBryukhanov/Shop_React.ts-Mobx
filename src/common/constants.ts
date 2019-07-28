@@ -12,9 +12,9 @@ export const FileResources = {
   IMAGE_MAX_SIZE: 5 * 1024 * 1024,
 
   logo: require('../assets/img/logo.svg'),
-  // defaultPreview: require('@/assets/img/prod_preview.jpg'),
-  // seller: require('@/assets/img/chat/seller.png'),
-  // customer: require('@/assets/img/chat/customer.png')
+  defaultPreview: require('../assets/img/prod_preview.jpg'),
+  seller: require('../assets/img/chat/seller.png'),
+  customer: require('../assets/img/chat/customer.png')
 };
 
 export const Roles = {

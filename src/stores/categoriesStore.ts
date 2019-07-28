@@ -1,8 +1,8 @@
 import { action, observable, runInAction } from 'mobx';
 import { ICategory } from '../types/category';
-
-import axios from 'axios';
 import rootStore from './rootStore';
+import axios from 'axios';
+
 const axiosCategory = axios.create({
   baseURL: `${process.env.REACT_APP_CORE_API}/categories`,
   withCredentials: true

@@ -3,7 +3,7 @@ import { Button, Dialog, DialogActions, DialogContent, DialogContentText, Dialog
 import { inject, observer } from 'mobx-react';
 import {  MuiThemeProvider } from '@material-ui/core';
 import { RootStore } from '../../stores/rootStore';
-import { dialogTheme } from './confirmation-dialog.theme';
+import { lightTheme } from '../../assets/themas/light.theme';
 
 interface IConfirmationDialog {
   rootStore?: RootStore
@@ -14,7 +14,7 @@ export const ConfirmationDialog: React.FC<IConfirmationDialog> = inject('rootSto
     const { dialogResult } = props.rootStore!;
 
     return (
-      <MuiThemeProvider theme={dialogTheme}>
+      <MuiThemeProvider theme={lightTheme}>
         <Dialog open={open} onClose={() => dialogResult(false)}>
           <DialogTitle>{title}</DialogTitle>
           <DialogContent>

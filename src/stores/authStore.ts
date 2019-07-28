@@ -1,9 +1,9 @@
 import { observable, action, runInAction } from 'mobx';
 import { IContactInfo, ICredentials, IUser } from '../types/user';
-
 import rootStore from './rootStore';
 import { AuthState } from '../common/constants';
 import axios from 'axios';
+
 const axiosAuth = axios.create({
   baseURL: process.env.REACT_APP_CORE_API,
   withCredentials: true,
