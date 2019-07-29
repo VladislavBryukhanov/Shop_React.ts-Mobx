@@ -1,5 +1,17 @@
 import React from 'react';
-import { Grid, Paper, CardMedia, CardContent, MuiThemeProvider } from '@material-ui/core';
+import {
+  Grid,
+  Paper,
+  CardMedia,
+  CardContent,
+  MuiThemeProvider,
+  Icon,
+  CardActions,
+  IconButton,
+  Fab,
+  Card,
+  Typography
+} from '@material-ui/core';
 import { inject, observer } from 'mobx-react';
 import { RouteComponentProps } from 'react-router';
 import { withRouter } from 'react-router-dom';
@@ -9,8 +21,6 @@ import { ProductsStore } from '../../stores/productsStore';
 import { PRODUCTS_ONE_PAGE_LIMIT } from '../../common/constants';
 import { IProduct } from '../../types/product';
 import { IPagingQuery } from '../../types/pagingQuery';
-import Card from '@material-ui/core/Card';
-import Typography from '@material-ui/core/Typography';
 import { buildImagePath } from '../../common/helpers/buildImagePath';
 import { styles } from './product-list.styles';
 import { lightTheme } from '../../assets/themas/light.theme';
@@ -115,6 +125,22 @@ class ProductListPage extends React.Component<IProductListProps, IProductListSta
                           {product.description}
                         </Typography>
                       </CardContent>
+                      <CardActions >
+                        <Fab color="secondary">
+                          <Icon>shopping_cart</Icon>
+                        </Fab>
+
+                        <IconButton>
+                          <Icon>edit</Icon>
+                        </IconButton>
+
+                        <IconButton onClick={() => {
+                          this.props.productsStore!.deleteProductById(product.id!)
+                        }}>
+                          <Icon color="primary">delete_forever</Icon>
+                        </IconButton>
+
+                      </CardActions>
                     </Card>
                   </MuiThemeProvider>
                 </Grid>
