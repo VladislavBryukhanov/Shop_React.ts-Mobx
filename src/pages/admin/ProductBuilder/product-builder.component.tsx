@@ -1,81 +1,210 @@
 import React from 'react';
 import {
-  Grid,
+  FormControl,
+  InputLabel,
+  TextField,
+  MenuItem,
+  Select,
   Paper,
+  Grid,
+  Button,
+  Card,
+  CardMedia
 } from '@material-ui/core';
 import { inject, observer } from 'mobx-react';
 import { ProductsStore } from '../../../stores/productsStore';
+import { CategoriesStore } from '../../../stores/categoriesStore';
+import { observable } from 'mobx';
+import { FileResources } from '../../../common/constants';
+import { styles } from './product-builder.styles';
+import withStyles from '@material-ui/core/styles/withStyles';
+import { RootStore } from '../../../stores/rootStore';
+
+export interface IProductForm {
+  CategoryId: string,
+  attachedPhoto: Blob | null,
+  name: string,
+  description: string,
+  price: string,
+  [id: string]: string |  Blob | null;
+}
 
 interface IProductBuilderProps {
   productsStore?: ProductsStore;
+  categoriesStore?: CategoriesStore;
+  rootStore?: RootStore;
+  classes: any;
+  editMode?: boolean;
 }
 
-@inject('productsStore')
+@inject('productsStore', 'categoriesStore', 'rootStore')
 @observer
-export class ProductBuilderPage extends React.Component<IProductBuilderProps> {
+class ProductBuilderPage extends React.Component<IProductBuilderProps> {
+  @observable.deep
+  product: IProductForm = {
+    attachedPhoto: null,
+    CategoryId: '',
+    name: '',
+    description: '',
+    price: '',
+  };
+
+  @observable.deep
+  validationError = Object.assign({}, this.product);
+
+  @observable
+  photoPreview = FileResources.defaultPreview;
+
+  //Todo get product by id
+
+  onValueChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value, name } = e.target;
+    this.product[name] = value;
+
+    // debounce(() => this.validateField(name), 250);
+  };
+
+  onValueSelected = (e: React.ChangeEvent<{ name?: string; value: unknown }>) => {
+    const { value, name } = e.target;
+    if (name) {
+      this.product[name] = value as string;
+    }
+  };
+
+  onPhotoChange = (e: any) => {
+    if (e.target.files) {
+      const [ attachedPhoto ] = e.target.files;
+
+      if (attachedPhoto.size > FileResources.IMAGE_MAX_SIZE) {
+        this.props.rootStore!.openConfirmationDialog(
+          'File maximal size exceeded',
+          `Maximum image size is 5MB. You have exceeded this restriction.`
+        );
+        return;
+      }
+
+      const fileReader = new FileReader();
+      this.product.attachedPhoto = attachedPhoto;
+
+      fileReader.onload = () => {
+        this.photoPreview = fileReader.result;
+      };
+      fileReader.readAsDataURL(attachedPhoto);
+    }
+  };
+
+  onSave = async () => {
+    const { product } = this;
+    const productForm = new FormData();
+    // product.price = Number(product.price);
+
+    // if (!this.$refs.productBuilder.validate()) {
+    //   return;
+    // }
+
+    for (const key in product) {
+      const value = product[key];
+      if (value) {
+        productForm.append(key, value);
+      }
+    }
+
+    if (this.props.editableProduct) {
+      await this.props.productsStore!.createProduct(productForm);
+    } else {
+      await this.props.productsStore!.updateProduct(productForm);
+    }
+/*    if (this.editableProduct) {
+      await this.updateProductAction(productForm)
+    } else {
+      await this.createProductAction(productForm)
+    }
+    this.$router.go(-1);*/
+  };
 
   render() {
+    const { classes } = this.props;
+
     return (
       <Grid container>
-        <Grid item xl={2} lg={2} md={1} />
-        <Grid item xl={8} lg={8} md={10} sm={12} xs={12}>
+        <Grid item xl={4} lg={3} md={3} sm={2} xs={2}/>
+        <Grid item xl={4} lg={6} md={6} sm={8} xs={10}>
           <Paper elevation={6}>
-            <Grid container
-                  justify="center"
-                  className="Page"
-                  alignItems="center">
+            <Grid container>
 
-            {/*  <TextField
-                fullWidth={true}
-                onChange={this.onValueChanged}
-                name="firstName"
-                label="First name"
-                error={!!this.validationError.firstName}
-                helperText={this.validationError.firstName}
-                onBlur={() => this.validateField('firstName')}
-                required/>
-              <TextField
-                fullWidth={true}
-                onChange={this.onValueChanged}
-                name="firstName"
-                label="First name"
-                error={!!this.validationError.firstName}
-                helperText={this.validationError.firstName}
-                onBlur={() => this.validateField('firstName')}
-                required/>
-              <FormControl fullWidth={true}>
-                <InputLabel htmlFor="gender">
-                  Gender
-                </InputLabel>
-                <Select
-                  onChange={this.onValueSelected}
-                  name="gender"
-                  value={this.user.gender}
+              <Grid item sm={6} xs={12}>
+                <Card className={classes.card}>
+                  <input
+                    accept="image/*"
+                    className={classes.input}
+                    id="text-button-file"
+                    type="file"
+                    onChange={this.onPhotoChange}
+                  />
+                  <label htmlFor="text-button-file">
+                    <CardMedia
+                      image={this.photoPreview}
+                      className={classes.media}/>
+                  </label>
+                </Card>
+              </Grid>
+
+              <Grid item sm={6} xs={12}>
+                <TextField
+                  className={classes.margin}
+                  fullWidth={true}
+                  onChange={this.onValueChanged}
+                  name="name"
+                  label="Product name"/>
+                <TextField
+                  className={classes.margin}
+                  fullWidth={true}
+                  onChange={this.onValueChanged}
+                  name="price"
+                  label="Price"
+                  type="number"/>
+                <FormControl
+                  fullWidth={true}
+                  className={classes.margin}
                 >
-                  {
-                    this.genderList.map(gender =>
+                  <InputLabel htmlFor="category">
+                    Category
+                  </InputLabel>
+                  <Select
+                    onChange={this.onValueSelected}
+                    name="CategoryId"
+                    value={this.product.CategoryId}
+                  >
+                    {this.props.categoriesStore!.categories.map(category =>
                       <MenuItem
-                        value={gender.value}
-                        key={gender.name}
+                        value={category.id}
+                        key={category.name}
                       >
-                        {gender.name}
+                        {category.name}
                       </MenuItem>
-                    )
-                  }
-                </Select>
-              </FormControl>
+                    )}
+                  </Select>
+                </FormControl>
+              </Grid>
               <TextField
-                id="filled-multiline-flexible"
-                label="Multiline"
+                className={classes.margin}
+                fullWidth={true}
+                name="description"
+                label="Description"
                 multiline
-                rowsMax="4"
-                value={values.multiline}
-                onChange={handleChange('multiline')}
-                className={classes.textField}
-                margin="normal"
-                helperText="hello"
-                variant=*/}"filled"
+                rows="4"
+                value={this.product.description}
+                onChange={this.onValueChanged}
+                variant="outlined"
               />
+              <Button
+                className={classes.margin}
+                variant="outlined" color="inherit"
+                fullWidth={true}
+                onClick={this.onSave}
+              >
+                Save
+              </Button>
             </Grid>
           </Paper>
         </Grid>
@@ -83,3 +212,5 @@ export class ProductBuilderPage extends React.Component<IProductBuilderProps> {
     )
   }
 }
+
+export default withStyles(styles)(ProductBuilderPage);

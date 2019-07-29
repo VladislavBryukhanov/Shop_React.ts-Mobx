@@ -22,7 +22,7 @@ export const ConfirmationDialog: React.FC<IConfirmationDialog> = inject('rootSto
           </DialogContent>
           <DialogActions>
             <Button color="primary" onClick={() => dialogResult(false)}>cancel</Button>
-            <Button color="secondary" onClick={() => dialogResult(true)} autoFocus>Confirm</Button>
+            <Button color="secondary" onClick={() => dialogResult(true)} autoFocus>ok</Button>
           </DialogActions>
         </Dialog>
       </MuiThemeProvider>

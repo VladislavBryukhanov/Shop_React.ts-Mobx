@@ -59,7 +59,7 @@ export class ProductsStore {
 
   //TODO create, update, delete locally without second data fetching
   @action
-  async createProduct(product: IProduct) {
+  async createProduct(product: FormData) {
     try {
       await axiosProduct.post('/create_products', product);
       runInAction(() => {
@@ -74,7 +74,7 @@ export class ProductsStore {
   }
   
   @action
-  async updateProduct(product: IProduct) {
+  async updateProduct(product: FormData) {
     try {
       await axiosProduct.put('/update_product', product)
     } catch (err) {

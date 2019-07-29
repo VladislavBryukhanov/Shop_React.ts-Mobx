@@ -46,6 +46,7 @@ class ProductListPage extends React.Component<IProductListProps, IProductListSta
     super(props);
     const { page = 1 } = queryString.parse(this.props.history.location.search);
 
+    //TODO replace state to mobx observable, with router as any?
     this.state = {
       category: this.props.match.params.category,
       query: {

@@ -12,9 +12,9 @@ import './App.scss';
 import { theme } from './assets/themas/App.theme';
 import { AuthPage } from './pages/Auth/auth.component';
 import ProductListPage from './pages/ProductList/product-list.component';
+import ProductBuilderPage from './pages/admin/ProductBuilder/product-builder.component';
 import { CategoriesManagerPage } from './pages/admin/CategoriesManager/categories-manager.component';
 import { NotFoundPage } from './pages/NotFound/not-found.component';
-
 
 const App: React.FC = () => {
   return (
@@ -54,6 +54,12 @@ const App: React.FC = () => {
             requiredRoles={[ Roles.MANAGER, Roles.ADMIN ]}
             exact path="/categories_manager"
             component={CategoriesManagerPage}
+          />
+
+          <RouteGuard
+            requiredRoles={[ Roles.MANAGER, Roles.ADMIN ]}
+            exact path="/product_manager"
+            component={ProductBuilderPage}
           />
 
           <RouteGuard
