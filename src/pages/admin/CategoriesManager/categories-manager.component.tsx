@@ -58,7 +58,7 @@ export const CategoriesManagerPage: React.FC<ICategoriesManagerProps> = inject('
       );
 
       if (confirmation) {
-        await props.categoriesStore!.removeCategory(category.id);
+        props.categoriesStore!.removeCategory(category.id);
       }
     };
 

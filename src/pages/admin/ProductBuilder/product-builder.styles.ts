@@ -6,9 +6,10 @@ export const styles = (theme: Theme) => createStyles({
     marginBottom: theme.spacing(1)
   },
   card: {
-    // minWidth: 200,
+    maxWidth: 260,
     padding: 20,
     background: "white",
+    margin: "auto",
   },
   media: {
     cursor: "pointer",

@@ -10,6 +10,10 @@ export const styles = (theme: Theme) => createStyles({
   media: {
     paddingTop: '80%'
   },
+  price: {
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2)
+  },
   productItem: {
     margin: 'auto',
     paddingTop: 16,

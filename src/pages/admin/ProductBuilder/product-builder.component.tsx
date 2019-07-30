@@ -19,17 +19,20 @@ import { FileResources } from '../../../common/constants';
 import { styles } from './product-builder.styles';
 import withStyles from '@material-ui/core/styles/withStyles';
 import { RootStore } from '../../../stores/rootStore';
+import { RouteComponentProps, withRouter } from 'react-router';
+import { buildImagePath } from '../../../common/helpers/buildImagePath';
 
-export interface IProductForm {
+interface IProductForm {
+  id?: string;
   CategoryId: string,
-  attachedPhoto: Blob | null,
+  attachedPhoto: Blob | string,
   name: string,
   description: string,
   price: string,
-  [id: string]: string |  Blob | null;
+  [id: string]: string |  Blob | undefined;
 }
 
-interface IProductBuilderProps {
+interface IProductBuilderProps extends RouteComponentProps {
   productsStore?: ProductsStore;
   categoriesStore?: CategoriesStore;
   rootStore?: RootStore;
@@ -42,7 +45,7 @@ interface IProductBuilderProps {
 class ProductBuilderPage extends React.Component<IProductBuilderProps> {
   @observable.deep
   product: IProductForm = {
-    attachedPhoto: null,
+    attachedPhoto: '',
     CategoryId: '',
     name: '',
     description: '',
@@ -55,7 +58,22 @@ class ProductBuilderPage extends React.Component<IProductBuilderProps> {
   @observable
   photoPreview = FileResources.defaultPreview;
 
-  //Todo get product by id
+  componentDidMount() {
+    const { state } = this.props.location;
+
+    if (state) {
+      const { id, previewPhoto, name, description, price, CategoryId } = state.editableProduct;
+      this.product = {
+        id,
+        name,
+        price: price.toString(),
+        CategoryId: CategoryId.toString(),
+        description,
+        attachedPhoto: previewPhoto,
+      };
+      this.photoPreview = buildImagePath(previewPhoto, 'preview_photo', 'thumbnail');
+    }
+  }
 
   onValueChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, name } = e.target;
@@ -109,17 +127,14 @@ class ProductBuilderPage extends React.Component<IProductBuilderProps> {
       }
     }
 
-    if (this.props.editableProduct) {
-      await this.props.productsStore!.createProduct(productForm);
-    } else {
+    const { state } = this.props.location;
+
+    if (state && state.editableProduct) {
       await this.props.productsStore!.updateProduct(productForm);
-    }
-/*    if (this.editableProduct) {
-      await this.updateProductAction(productForm)
     } else {
-      await this.createProductAction(productForm)
+      await this.props.productsStore!.createProduct(productForm);
     }
-    this.$router.go(-1);*/
+    this.props.history.goBack();
   };
 
   render() {
@@ -127,11 +142,10 @@ class ProductBuilderPage extends React.Component<IProductBuilderProps> {
 
     return (
       <Grid container>
-        <Grid item xl={4} lg={3} md={3} sm={2} xs={2}/>
-        <Grid item xl={4} lg={6} md={6} sm={8} xs={10}>
+        <Grid item xl={4} lg={4} md={3} sm={2} xs={2}/>
+        <Grid item xl={3} lg={4} md={6} sm={8} xs={10}>
           <Paper elevation={6}>
             <Grid container>
-
               <Grid item sm={6} xs={12}>
                 <Card className={classes.card}>
                   <input
@@ -154,12 +168,14 @@ class ProductBuilderPage extends React.Component<IProductBuilderProps> {
                   className={classes.margin}
                   fullWidth={true}
                   onChange={this.onValueChanged}
+                  value={this.product.name}
                   name="name"
                   label="Product name"/>
                 <TextField
                   className={classes.margin}
                   fullWidth={true}
                   onChange={this.onValueChanged}
+                  value={this.product.price}
                   name="price"
                   label="Price"
                   type="number"/>
@@ -213,4 +229,6 @@ class ProductBuilderPage extends React.Component<IProductBuilderProps> {
   }
 }
 
-export default withStyles(styles)(ProductBuilderPage);
+export default withStyles(styles)(
+  withRouter(ProductBuilderPage)
+);
