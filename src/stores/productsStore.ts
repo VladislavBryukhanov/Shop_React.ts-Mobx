@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { action, observable, runInAction } from 'mobx';
-import { IProduct, IProductList } from '../types/product';
+import { IProductList } from '../types/product';
 import rootStore from './rootStore';
 import { IPagingQuery } from '../types/pagingQuery';
 

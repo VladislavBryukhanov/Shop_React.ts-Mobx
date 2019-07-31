@@ -9,7 +9,8 @@ import {
   Grid,
   Button,
   Card,
-  CardMedia
+  CardMedia,
+  FormHelperText
 } from '@material-ui/core';
 import { inject, observer } from 'mobx-react';
 import { ProductsStore } from '../../../stores/productsStore';
@@ -21,6 +22,16 @@ import withStyles from '@material-ui/core/styles/withStyles';
 import { RootStore } from '../../../stores/rootStore';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { buildImagePath } from '../../../common/helpers/buildImagePath';
+import _ from 'lodash';
+import Toolbar from '@material-ui/core/Toolbar';
+import IconButton from '@material-ui/core/IconButton';
+import Icon from '@material-ui/core/Icon';
+import Typography from '@material-ui/core/Typography';
+import { fieldValidator } from '../../../common/helpers/fieldValidator';
+
+interface IValidationRules {
+  [index: string]: Array<(fieldName: any) => any | void>
+}
 
 interface IProductForm {
   id?: string;
@@ -75,18 +86,87 @@ class ProductBuilderPage extends React.Component<IProductBuilderProps> {
     }
   }
 
+  validationRules: IValidationRules = {
+    name: [
+      fieldValidator(
+        (fn: string) => !!fn,
+        'Name is required field'
+      ),
+      fieldValidator(
+        (fn: string) => fn.length >= 1 && fn.length <= 64,
+        'Name must be longer then 1 and less then 64 characters'
+      ),
+    ],
+    description: [
+      fieldValidator(
+        (fn: string) => !!fn,
+        'Description is required field'
+      ),
+      fieldValidator(
+        (fn: string) => fn.length >= 1 && fn.length <= 512,
+        'Description must be longer then 1 and less then 512 characters'
+      ),
+    ],
+    price: [
+      fieldValidator(
+        (fn: string) => !!fn,
+        'Price is required field'
+      ),
+      fieldValidator(
+        (fn: string) => +fn > 0,
+        'The price can not be less than 0'
+      ),
+    ],
+    CategoryId: [
+      fieldValidator(
+        (fn: string) => !!fn,
+        'Category is required field'
+      )
+    ],
+  };
+
+  validateField = (fieldName: string): void => {
+    const value = this.product[fieldName];
+    try {
+      if (!this.validationRules[fieldName]) {
+        return;
+      }
+
+      this.validationRules[fieldName].forEach(
+        (validate: (value: any) => any) => validate(value));
+      if (this.validationError[fieldName]) {
+        this.validationError[fieldName] = '';
+      }
+    } catch (err) {
+      this.validationError[fieldName] = err.message;
+    }
+  };
+
+  validateForm = (formData: object) => {
+    Object.keys(formData).forEach(key => {
+      this.validateField(key);
+    });
+
+    return _.chain(this.validationError)
+      .pickBy(_.identity)
+      .isEmpty()
+      .value();
+  };
+
+
   onValueChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, name } = e.target;
     this.product[name] = value;
-
-    // debounce(() => this.validateField(name), 250);
+    _.debounce(() => this.validateField(name), 250)();
   };
 
   onValueSelected = (e: React.ChangeEvent<{ name?: string; value: unknown }>) => {
     const { value, name } = e.target;
-    if (name) {
-      this.product[name] = value as string;
+    if (!name) {
+      return;
     }
+    this.product[name] = value as string;
+    _.debounce(() => this.validateField(name), 250)();
   };
 
   onPhotoChange = (e: any) => {
@@ -111,24 +191,21 @@ class ProductBuilderPage extends React.Component<IProductBuilderProps> {
     }
   };
 
-  onSave = async () => {
-    const { product } = this;
+  onSave = async (e: any) => {
+    e.preventDefault();
+
+    if (!this.validateForm(this.product)) {
+      return;
+    }
+
     const productForm = new FormData();
-    // product.price = Number(product.price);
-
-    // if (!this.$refs.productBuilder.validate()) {
-    //   return;
-    // }
-
-    for (const key in product) {
-      const value = product[key];
+    _.each(this.product, (value, key) => {
       if (value) {
         productForm.append(key, value);
       }
-    }
+    });
 
     const { state } = this.props.location;
-
     if (state && state.editableProduct) {
       await this.props.productsStore!.updateProduct(productForm);
     } else {
@@ -145,83 +222,107 @@ class ProductBuilderPage extends React.Component<IProductBuilderProps> {
         <Grid item xl={4} lg={4} md={3} sm={2} xs={2}/>
         <Grid item xl={3} lg={4} md={6} sm={8} xs={10}>
           <Paper elevation={6}>
-            <Grid container>
-              <Grid item sm={6} xs={12}>
-                <Card className={classes.card}>
-                  <input
-                    accept="image/*"
-                    className={classes.input}
-                    id="text-button-file"
-                    type="file"
-                    onChange={this.onPhotoChange}
-                  />
-                  <label htmlFor="text-button-file">
-                    <CardMedia
-                      image={this.photoPreview}
-                      className={classes.media}/>
-                  </label>
-                </Card>
-              </Grid>
+            <Toolbar color="inherit">
+              <IconButton edge="start" onClick={() => this.props.history.goBack()}>
+                <Icon>arrow_back</Icon>
+              </IconButton>
+              <Typography variant="h6">
+                Product manager
+              </Typography>
+            </Toolbar>
 
-              <Grid item sm={6} xs={12}>
-                <TextField
-                  className={classes.margin}
-                  fullWidth={true}
-                  onChange={this.onValueChanged}
-                  value={this.product.name}
-                  name="name"
-                  label="Product name"/>
-                <TextField
-                  className={classes.margin}
-                  fullWidth={true}
-                  onChange={this.onValueChanged}
-                  value={this.product.price}
-                  name="price"
-                  label="Price"
-                  type="number"/>
-                <FormControl
-                  fullWidth={true}
-                  className={classes.margin}
-                >
-                  <InputLabel htmlFor="category">
-                    Category
-                  </InputLabel>
-                  <Select
-                    onChange={this.onValueSelected}
-                    name="CategoryId"
-                    value={this.product.CategoryId}
+            <form onSubmit={this.onSave}>
+              <Grid container>
+                <Grid item sm={6} xs={12}>
+                  <Card className={classes.card}>
+                    <input
+                      accept="image/*"
+                      className={classes.input}
+                      id="text-button-file"
+                      type="file"
+                      onChange={this.onPhotoChange}
+                    />
+                    <label htmlFor="text-button-file">
+                      <CardMedia
+                        image={this.photoPreview}
+                        className={classes.media}/>
+                    </label>
+                  </Card>
+                </Grid>
+
+                <Grid item sm={6} xs={12}>
+                  <TextField
+                    className={classes.margin}
+                    fullWidth={true}
+                    onChange={this.onValueChanged}
+                    value={this.product.name}
+                    error={!!this.validationError.name}
+                    helperText={this.validationError.name}
+                    onBlur={() => this.validateField('name')}
+                    name="name"
+                    label="Product name"/>
+                  <TextField
+                    className={classes.margin}
+                    fullWidth={true}
+                    onChange={this.onValueChanged}
+                    value={this.product.price}
+                    error={!!this.validationError.price}
+                    helperText={this.validationError.price}
+                    onBlur={() => this.validateField('price')}
+                    name="price"
+                    label="Price"
+                    type="number"/>
+                  <FormControl
+                    fullWidth={true}
+                    className={classes.margin}
+                    error={!!this.validationError.CategoryId}
+                    onBlur={() => this.validateField('CategoryId')}
                   >
-                    {this.props.categoriesStore!.categories.map(category =>
-                      <MenuItem
-                        value={category.id}
-                        key={category.name}
-                      >
-                        {category.name}
-                      </MenuItem>
-                    )}
-                  </Select>
-                </FormControl>
+                    <InputLabel htmlFor="category">
+                      Category
+                    </InputLabel>
+                    <Select
+                      color="error"
+                      onChange={this.onValueSelected}
+                      value={this.product.CategoryId}
+                      name="CategoryId"
+                    >
+                      {this.props.categoriesStore!.categories.map(category =>
+                        <MenuItem
+                          value={category.id.toString()}
+                          key={category.name}
+                        >
+                          {category.name}
+                        </MenuItem>
+                      )}
+                    </Select>
+                    <FormHelperText>{this.validationError.CategoryId}</FormHelperText>
+                  </FormControl>
+                </Grid>
+                <TextField
+                  className={classes.margin}
+                  fullWidth={true}
+                  onChange={this.onValueChanged}
+                  value={this.product.description}
+                  error={!!this.validationError.description}
+                  helperText={this.validationError.description}
+                  onBlur={() => this.validateField('description')}
+                  name="description"
+                  label="Description"
+                  multiline
+                  rows="4"
+                  variant="outlined"
+                />
+                <Button
+                  className={classes.margin}
+                  variant="outlined" color="inherit"
+                  fullWidth={true}
+                  type="submit"
+                >
+                  Save
+                </Button>
               </Grid>
-              <TextField
-                className={classes.margin}
-                fullWidth={true}
-                name="description"
-                label="Description"
-                multiline
-                rows="4"
-                value={this.product.description}
-                onChange={this.onValueChanged}
-                variant="outlined"
-              />
-              <Button
-                className={classes.margin}
-                variant="outlined" color="inherit"
-                fullWidth={true}
-                onClick={this.onSave}
-              >
-                Save
-              </Button>
-            </Grid>
+            </form>
           </Paper>
         </Grid>
       </Grid>
