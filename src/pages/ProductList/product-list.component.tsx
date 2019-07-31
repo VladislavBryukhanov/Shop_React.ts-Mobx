@@ -10,7 +10,7 @@ import {
   Badge,
   Fab,
   Card,
-  Typography
+  Typography, IconButton
 } from '@material-ui/core';
 import { inject, observer } from 'mobx-react';
 import { RouteComponentProps } from 'react-router';
@@ -24,9 +24,13 @@ import { IProduct } from '../../types/product';
 import { IPagingQuery } from '../../types/pagingQuery';
 import { buildImagePath } from '../../common/helpers/buildImagePath';
 import { styles } from './product-list.styles';
+// import PaginationComponent from '../../components/pagination/pagination.component';
 import { lightTheme } from '../../assets/themas/light.theme';
 import { AdapterLink } from '../../components/material-button-link/material-button-link.component';
-import { toJS } from 'mobx';
+import { observable, toJS } from 'mobx';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import TextField from '@material-ui/core/TextField';
+import _ from 'lodash';
 
 interface IRouterParams {
   category: string;
@@ -37,67 +41,57 @@ interface IProductListProps extends RouteComponentProps<IRouterParams> {
   topProducts?: boolean;
   classes: any;
 }
-interface IProductListState {
-  category: string;
-  query: IPagingQuery;
-}
 
 @inject('productsStore', 'rootStore')
 @observer
-class ProductListPage extends React.Component<IProductListProps, IProductListState> {
+class ProductListPage extends React.Component<IProductListProps> {
+  @observable
+  query: IPagingQuery;
+  @observable
+  category: string;
+  @observable
+  loading: boolean;
+
   constructor(props: IProductListProps) {
     super(props);
     const { page = 1 } = queryString.parse(this.props.history.location.search);
-
-    //TODO replace state to mobx observable
-    this.state = {
-      category: this.props.match.params.category,
-      query: {
-        currentPage: +page!,
-        limit: PRODUCTS_ONE_PAGE_LIMIT,
-        searchQuery: ''
-      }
+    this.query = {
+      currentPage: +page!,
+      limit: PRODUCTS_ONE_PAGE_LIMIT,
+      searchQuery: ''
     };
-
+    this.category = this.props.match.params.category;
+    this.loading = false;
   }
 
   componentDidMount() {
-    this.fetchProducts(
-      { ...this.state.query },
-      this.state.category,
-      this.props.topProducts
-    );
+    this.fetchProducts();
   }
 
-  componentWillReceiveProps(nextProps: IProductListProps) {
-    if (this.props.topProducts !== nextProps.topProducts) {
+  componentDidUpdate(prevProps: IProductListProps) {
+    console.error(prevProps)
+    console.error(this.props)
+    if (this.props.location !== prevProps.location) {
+      const { page = 1 } = queryString.parse(this.props.history.location.search);
+      this.query.currentPage = +page!;
 
-    }
-
-    if (this.props.match.params.category !== nextProps.match.params.category) {
-      this.fetchProducts(
-        this.state.query,
-        nextProps.match.params.category,
-        nextProps.topProducts
-      );
-    }
-
-    if (this.props.history.location.search !== nextProps.history.location.search) {
-      const { page = 1 } = queryString.parse(nextProps.history.location.search);
-      this.fetchProducts( {
-          ...this.state.query,
-          currentPage: +page!
-        }, this.state.category,
-        nextProps.topProducts
-      );
+      this.fetchProducts();
     }
   }
 
-  fetchProducts(query: IPagingQuery, category: string, topProducts: boolean | undefined) {
-    if (topProducts) {
-      this.props.productsStore!.fetchTopProducts({ ...query });
+/*  pageCount() {
+    let pageCount = (this.props.productsStore!.products.count / this.query.limit);
+    if (pageCount > parseInt(pageCount)) {
+      pageCount = parseInt(pageCount) + 1;
+    }
+    return pageCount || 1;
+  }*/
+
+  fetchProducts() {
+    if (this.props.topProducts) {
+      this.props.productsStore!.fetchTopProducts({ ...this.query });
     } else {
-      this.props.productsStore!.fetchProducts({ ...query },  category);
+      this.props.productsStore!.fetchProducts({ ...this.query },  this.category);
     }
   }
 
@@ -109,28 +103,94 @@ class ProductListPage extends React.Component<IProductListProps, IProductListSta
 
     if (confirmation) {
       await this.props.productsStore!.deleteProductById(product.id!);
-
-      this.fetchProducts(
-        { ...this.state.query },
-        this.state.category,
-        this.props.topProducts
-      );
+      this.fetchProducts();
     }
   }
 
+  nextPage = () => {
+    this.query.currentPage++;
+    this.props.history.push({
+      ...this.props.history,
+      search: `page=${this.query.currentPage}`
+    })
+  };
+
+  previousPage = () => {
+    this.query.currentPage--;
+    this.props.history.push({
+      ...this.props.history,
+      search: `page=${this.query.currentPage}`
+    })
+  };
+
+  searchFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
+    this.query.searchQuery = e.target.value;
+
+    _.debounce(() => {
+      this.fetchProducts();
+    }, 300)();
+  };
+
+  clearSearchFilter = () => {
+    this.query.searchQuery = '';
+    this.fetchProducts();
+  };
+
   render() {
     const { classes } = this.props;
-
     const { rows: products } = this.props.productsStore!.products;
+
     return (
-        <Grid container className={classes.productList}>
-          <Grid item xl={2} lg={2} md={1} />
-          <Grid item xl={8} lg={8} md={10} sm={12} xs={12}>
+      <Grid container className={classes.productList}>
+        <Grid item xl={2} lg={2} md={1} />
+        <Grid item xl={8} lg={8} md={10} sm={12} xs={12}>
+          {/*<PaginationComponent/>*/}
+
+          <Grid container
+                justify="center"
+                alignItems="center">
             <Paper elevation={6}>
-              <Grid container
-                    justify="center"
-                    className="Page"
-                    alignItems="center">
+              <TextField
+                variant="filled"
+                label="Category"
+                onChange={this.searchFilter}
+                value={this.query.searchQuery}
+                InputProps={{
+                  endAdornment: (
+                    <>
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={this.clearSearchFilter}
+                        >
+                          <Icon>close</Icon>
+                        </IconButton>
+                      </InputAdornment>
+
+                      <InputAdornment position="end">
+                          <Icon color="primary">search</Icon>
+                      </InputAdornment>
+                    </>
+                  ),
+                }}
+              />
+
+              <IconButton onClick={this.previousPage}>
+                <Icon>arrow_back_ios</Icon>
+              </IconButton>
+              <IconButton>
+                {this.query.currentPage}
+              </IconButton>
+              <IconButton onClick={this.nextPage}>
+                <Icon>arrow_forward_ios</Icon>
+              </IconButton>
+            </Paper>
+          </Grid>
+
+          <Paper elevation={6}>
+            <Grid container
+                  justify="center"
+                  className="Page"
+                  alignItems="center">
               {products.map((product: IProduct) => (
                 <Grid key={product.id} item className={classes.productItem}>
                   <MuiThemeProvider theme={lightTheme}>
@@ -183,10 +243,10 @@ class ProductListPage extends React.Component<IProductListProps, IProductListSta
                   </MuiThemeProvider>
                 </Grid>
               ))}
-              </Grid>
-            </Paper>
-          </Grid>
+            </Grid>
+          </Paper>
         </Grid>
+      </Grid>
     )
   }
 }
