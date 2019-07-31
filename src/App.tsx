@@ -9,12 +9,12 @@ import { ConfirmationDialog } from './components/confirmation-dialog/confirmatio
 import { RouteGuard } from './components/route-guard/route-guard.component';
 import './App.scss';
 
-import { theme } from './App.theme';
+import { theme } from './assets/themas/App.theme';
 import { AuthPage } from './pages/Auth/auth.component';
-import { ProductListPage } from './pages/ProductList/product-list.component';
+import ProductListPage from './pages/ProductList/product-list.component';
+import ProductBuilderPage from './pages/admin/ProductBuilder/product-builder.component';
 import { CategoriesManagerPage } from './pages/admin/CategoriesManager/categories-manager.component';
 import { NotFoundPage } from './pages/NotFound/not-found.component';
-
 
 const App: React.FC = () => {
   return (
@@ -35,15 +35,13 @@ const App: React.FC = () => {
           <RouteGuard
             requiredGuest={true}
             exact path="/sign_up"
-            render={
-              (props: any) => <AuthPage {...props} isSignUp={true} />
-            }
+            render={ (props: any) => <AuthPage {...props} isSignUp={true} /> }
           />
 
           <RouteGuard
             requiredAuth={true}
             exact path="/top_products"
-            component={ProductListPage}
+            render={ (props: any) => <ProductListPage {...props} topProducts={true} /> }
           />
 
           <RouteGuard
@@ -56,6 +54,12 @@ const App: React.FC = () => {
             requiredRoles={[ Roles.MANAGER, Roles.ADMIN ]}
             exact path="/categories_manager"
             component={CategoriesManagerPage}
+          />
+
+          <RouteGuard
+            requiredRoles={[ Roles.MANAGER, Roles.ADMIN ]}
+            exact path="/product_manager"
+            component={ProductBuilderPage}
           />
 
           <RouteGuard

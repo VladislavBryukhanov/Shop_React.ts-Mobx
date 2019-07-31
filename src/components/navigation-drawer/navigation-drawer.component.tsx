@@ -37,6 +37,7 @@ interface INavigationDrawerState {
 @inject('authStore', 'categoriesStore')
 @observer
 class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigationDrawerState> {
+  // TODO change state to mobx observable
   constructor(props: INavigationDrawerProps) {
     super(props);
     this.state = {
@@ -118,30 +119,34 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
               {adminCollapsed ? <ExpandLess /> : <ExpandMore />}
             </ListItem>
             <Collapse in={drawerOpened && adminCollapsed} timeout="auto" unmountOnExit>
-                <ListItem button>
-                  <ListItemText inset primary="Create product" />
-                  <ListItemIcon>
-                    <Icon>add</Icon>
-                  </ListItemIcon>
-                </ListItem>
+              <ListItem
+                button
+                component={AdapterLink}
+                to="/product_manager"
+              >
+                <ListItemText inset primary="Create product" />
+                <ListItemIcon>
+                  <Icon>add</Icon>
+                </ListItemIcon>
+              </ListItem>
 
-                <ListItem
-                  button
-                  component={AdapterLink}
-                  to="/categories_manager"
-                >
-                  <ListItemText inset primary="Manage categories" />
-                  <ListItemIcon>
-                    <Icon>add_to_photos</Icon>
-                  </ListItemIcon>
-                </ListItem>
+              <ListItem
+                button
+                component={AdapterLink}
+                to="/categories_manager"
+              >
+                <ListItemText inset primary="Manage categories" />
+                <ListItemIcon>
+                  <Icon>add_to_photos</Icon>
+                </ListItemIcon>
+              </ListItem>
 
-                <ListItem button>
-                  <ListItemText inset primary="Users" />
-                  <ListItemIcon>
-                    <Icon>people</Icon>
-                  </ListItemIcon>
-                </ListItem>
+              <ListItem button>
+                <ListItemText inset primary="Users" />
+                <ListItemIcon>
+                  <Icon>people</Icon>
+                </ListItemIcon>
+              </ListItem>
             </Collapse>
 
             <ListItem button>

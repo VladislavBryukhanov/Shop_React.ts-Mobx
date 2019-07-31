@@ -17,10 +17,10 @@ import { observable } from 'mobx';
 import { AuthStore } from '../../stores/authStore';
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 import DateFnsUtils from '@date-io/date-fns';
-import ow from 'ow';
 import { getUnixTime } from 'date-fns';
-import { debounce } from '../../common/utils';
 import { AdapterLink } from '../../components/material-button-link/material-button-link.component';
+import _ from 'lodash';
+import { fieldValidator } from '../../common/helpers/fieldValidator'
 
 interface IValidationRules {
   [index: string]: Array<(fieldName: any) => any | void>
@@ -63,86 +63,80 @@ export class AuthPage extends React.Component<IAuthProps> {
     },
   ];
 
+  // TODO replace validation to component wrapper
   validationRules: IValidationRules = {
     email: [
-      (fn: string) => ow(fn, ow.string.validate(fn => ({
-          validator: !!fn,
-          message: () => 'Email is required field'
-        })
-      )),
-      (fn: string) => ow(fn, ow.string.validate(fn => ({
-          validator: /\S+@\S+\.\S+/.test(fn),
-          message: () => 'E-mail must be valid'
-        })
-      ))
+      fieldValidator(
+        (fn: string) => !!fn,
+        'Email is required field'
+      ),
+      fieldValidator(
+        (fn: string) => /\S+@\S+\.\S+/.test(fn),
+        'E-mail must be valid'
+      )
     ],
     password: [
-      (fn: string) => ow(fn, ow.string.validate(fn => ({
-          validator: !!fn,
-          message: () => 'Password is required field'
-        })
-      )),
-      (fn: string) => ow(fn, ow.string.validate(fn => ({
-          validator: fn.length >= 8 && fn.length <= 32,
-          message: () => 'Password must be longer then 8 and less then 32 characters'
-        })
-      ))
+      fieldValidator(
+        (fn: string) => !!fn,
+        'Password is required field'
+      ),
+      fieldValidator(
+        (fn: string) => fn.length >= 8 && fn.length <= 32,
+        'Password must be longer then 8 and less then 32 characters'
+      ),
     ],
     firstName: [
-      (fn: string) => ow(fn, ow.string.validate(fn => ({
-          validator: !!fn,
-          message: () => 'First name is required field'
-        })
-      )),
-      (fn: string) => ow(fn, ow.string.validate(fn => ({
-          validator: fn.length >= 1 && fn.length <= 20,
-          message: () => 'First name must be longer then 1 and less then 20 characters'
-        })
-      ))
+      fieldValidator(
+        (fn: string) => !!fn,
+        'First name is required field'
+      ),
+      fieldValidator(
+        (fn: string) => fn.length >= 1 && fn.length <= 20,
+        'First name must be longer then 1 and less then 20 characters'
+      ),
     ],
     lastName: [
-      (fn: string) => ow(fn, ow.string.validate(fn => ({
-          validator: !!fn,
-          message: () => 'Last name is required field'
-        })
-      )),
-      (fn: string) => ow(fn, ow.string.validate(fn => ({
-          validator: fn.length >= 1 && fn.length <= 20,
-          message: () => 'Last name must be longer then 1 and less then 20 characters'
-        })
-      ))
+      fieldValidator(
+        (fn: string) => !!fn,
+        'Last name is required field'
+      ),
+      fieldValidator(
+        (fn: string) => fn.length >= 1 && fn.length <= 20,
+        'Last name must be longer then 1 and less then 20 characters'
+      ),
     ],
 
     address: [
-      (fn: string) => ow(fn, ow.string.validate(fn => ({
-          validator: !!fn,
-          message: () => 'Address is required field'
-        })
-      )),
-      (fn: string) => ow(fn, ow.string.validate(fn => ({
-          validator: fn.length >= 4 && fn.length <= 64,
-          message: () => 'Please enter a valid address'
-        })
-      ))
+      fieldValidator(
+        (fn: string) => !!fn,
+        'Address is required field'
+      ),
+      fieldValidator(
+        (fn: string) => fn.length >= 4 && fn.length <= 64,
+        'Please enter a valid address'
+      ),
     ],
     phone: [
-      (fn: string) => ow(fn, ow.string.validate(fn => ({
-          validator: !!fn,
-          message: () => 'Phone is required field'
-        })
-      )),
-      (fn: string) => ow(fn, ow.string.validate(fn => ({
-          validator: fn.length >= 4 && fn.length <= 12,
-          message: () => 'Please enter a valid phone number'
-        })
-      ))
+      fieldValidator(
+        (fn: string) => !!fn,
+        'Phone is required field'
+      ),
+      fieldValidator(
+        (fn: string) => fn.length >= 4 && fn.length <= 12,
+        'Please enter a valid phone number'
+      ),
     ],
   };
 
   validateField = (fieldName: string): void => {
     const value = this.user[fieldName];
     try {
-      this.validationRules[fieldName].map((validate: (value: any) => any) => validate(value));
+      if (!this.validationRules[fieldName]) {
+        return;
+      }
+
+      this.validationRules[fieldName].forEach(
+        (validate: (value: any) => any) => validate(value));
       if (this.validationError[fieldName]) {
         this.validationError[fieldName] = '';
       }
@@ -151,20 +145,22 @@ export class AuthPage extends React.Component<IAuthProps> {
     }
   };
 
-  isFormValid = () => {
-    for (let prop in this.user) {
-      if (!prop) {
-        return false;
-      }
-    }
-    return true;
+  validateForm = (formData: object) => {
+    Object.keys(formData).forEach(key => {
+      this.validateField(key);
+    });
+
+    return _.chain(this.validationRules)
+      .pickBy(_.identity)
+      .isEmpty()
+      .value();
   };
 
   onValueChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, name } = e.target;
     this.user[name] = value;
 
-    debounce(() => this.validateField(name), 250);
+    _.debounce(() => this.validateField(name), 250)();
   };
 
   onValueSelected = (e: React.ChangeEvent<{ name?: string; value: unknown }>) => {
@@ -185,24 +181,25 @@ export class AuthPage extends React.Component<IAuthProps> {
   onSignUp = async (e: any) => {
     e.preventDefault();
 
-    //_.pickBy ... _.identity
-    if (this.isFormValid()) {
-      const {
-        email,
-        password,
-        firstName,
-        lastName,
-        gender,
-        birthday,
-        phone,
-        address,
-      } = this.user;
-
-      await this.props.authStore!.signUp(
-        { email, password, firstName, lastName, gender, birthday },
-        { phone, address }
-      )
+    if (!this.validateForm(this.user)) {
+      return;
     }
+
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      gender,
+      birthday,
+      phone,
+      address,
+    } = this.user;
+
+    await this.props.authStore!.signUp(
+      { email, password, firstName, lastName, gender, birthday },
+      { phone, address }
+    )
   };
 
   onSignIn = async (e: any) => {
@@ -210,31 +207,31 @@ export class AuthPage extends React.Component<IAuthProps> {
     await this.props.authStore!.signIn(this.user);
   };
 
-  credentials = (size: any) => (<>
-    <Grid item xs={size}>
-      <TextField
-        fullWidth={true}
-        onChange={this.onValueChanged}
-        name="email"
-        label="Email"
-        error={!!this.validationError.email}
-        helperText={this.validationError.email}
-        onBlur={() => this.validateField('email')}
-        required/>
-    </Grid>
-    <Grid item xs={size}>
-      <TextField
-        fullWidth={true}
-        onChange={this.onValueChanged}
-        type="password"
-        name="password"
-        label="Password"
-        error={!!this.validationError.password}
-        helperText={this.validationError.password}
-        onBlur={() => this.validateField('password')}
-        required/>
-    </Grid>
-  </>);
+  credentials = (size: any) => (
+    <>
+      <Grid item xs={size}>
+        <TextField
+          fullWidth={true}
+          onChange={this.onValueChanged}
+          name="email"
+          label="Email"
+          error={!!this.validationError.email}
+          helperText={this.validationError.email}
+          onBlur={() => this.validateField('email')}/>
+      </Grid>
+      <Grid item xs={size}>
+        <TextField
+          fullWidth={true}
+          onChange={this.onValueChanged}
+          type="password"
+          name="password"
+          label="Password"
+          error={!!this.validationError.password}
+          helperText={this.validationError.password}
+          onBlur={() => this.validateField('password')}/>
+      </Grid>
+    </>
+  );
 
   public render() {
     return (
@@ -266,8 +263,7 @@ export class AuthPage extends React.Component<IAuthProps> {
                         label="First name"
                         error={!!this.validationError.firstName}
                         helperText={this.validationError.firstName}
-                        onBlur={() => this.validateField('firstName')}
-                        required/>
+                        onBlur={() => this.validateField('firstName')}/>
                     </Grid>
                     <Grid item xs={6}>
                       <TextField
@@ -277,8 +273,7 @@ export class AuthPage extends React.Component<IAuthProps> {
                         label="Last name"
                         error={!!this.validationError.lastName}
                         helperText={this.validationError.lastName}
-                        onBlur={() => this.validateField('lastName')}
-                        required/>
+                        onBlur={() => this.validateField('lastName')}/>
                     </Grid>
 
                     <Grid item xs={6}>
@@ -329,8 +324,7 @@ export class AuthPage extends React.Component<IAuthProps> {
                         label="Address"
                         error={!!this.validationError.address}
                         helperText={this.validationError.address}
-                        onBlur={() => this.validateField('address')}
-                        required/>
+                        onBlur={() => this.validateField('address')}/>
                     </Grid>
                     <Grid item xs={6}>
                       <TextField
@@ -341,8 +335,7 @@ export class AuthPage extends React.Component<IAuthProps> {
                         label="Phone"
                         error={!!this.validationError.phone}
                         helperText={this.validationError.phone}
-                        onBlur={() => this.validateField('phone')}
-                        required/>
+                        onBlur={() => this.validateField('phone')}/>
                     </Grid>
                   </Grid>
                   <Grid item xs={12}>
@@ -370,8 +363,7 @@ export class AuthPage extends React.Component<IAuthProps> {
                         fullWidth={true}
                         onChange={this.onValueChanged}
                         name="email"
-                        label="Email"
-                        required/>
+                        label="Email"/>
                     </Grid>
                     <Grid item xs={12}>
                       <TextField
@@ -379,8 +371,7 @@ export class AuthPage extends React.Component<IAuthProps> {
                         onChange={this.onValueChanged}
                         name="password"
                         label="Password"
-                        type="password"
-                        required/>
+                        type="password"/>
                     </Grid>
 
                     <Grid item xs={6}>
