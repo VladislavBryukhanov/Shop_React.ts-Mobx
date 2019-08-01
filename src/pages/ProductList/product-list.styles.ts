@@ -18,5 +18,10 @@ export const styles = (theme: Theme) => createStyles({
     margin: 'auto',
     paddingTop: 16,
     paddingBottom: 16
+  },
+
+
+  pagination: {
+    margin: 'auto'
   }
 });

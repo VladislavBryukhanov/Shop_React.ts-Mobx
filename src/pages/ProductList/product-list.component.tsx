@@ -27,7 +27,7 @@ import { styles } from './product-list.styles';
 // import PaginationComponent from '../../components/pagination/pagination.component';
 import { lightTheme } from '../../assets/themas/light.theme';
 import { AdapterLink } from '../../components/material-button-link/material-button-link.component';
-import { observable, toJS } from 'mobx';
+import { computed, observable, toJS } from 'mobx';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import TextField from '@material-ui/core/TextField';
 import _ from 'lodash';
@@ -79,14 +79,6 @@ class ProductListPage extends React.Component<IProductListProps> {
     }
   }
 
-/*  pageCount() {
-    let pageCount = (this.props.productsStore!.products.count / this.query.limit);
-    if (pageCount > parseInt(pageCount)) {
-      pageCount = parseInt(pageCount) + 1;
-    }
-    return pageCount || 1;
-  }*/
-
   fetchProducts() {
     if (this.props.topProducts) {
       this.props.productsStore!.fetchTopProducts({ ...this.query });
@@ -107,24 +99,66 @@ class ProductListPage extends React.Component<IProductListProps> {
     }
   }
 
-  nextPage = () => {
-    this.query.currentPage++;
+  changePage = (page: number) => {
+    this.query.currentPage = page;
     this.props.history.push({
       ...this.props.history,
       search: `page=${this.query.currentPage}`
     })
   };
 
-  previousPage = () => {
-    this.query.currentPage--;
-    this.props.history.push({
-      ...this.props.history,
-      search: `page=${this.query.currentPage}`
-    })
+  @computed
+  get pageCount() {
+    let pageCount = (this.props.productsStore!.products.count / this.query.limit);
+    if (pageCount > Math.floor(pageCount)) {
+      pageCount = Math.floor(pageCount) + 1;
+    }
+    return pageCount || 1;
+  }
+
+  renderPageNumbers = (displayedNumbers: number = 8) => {
+    const { currentPage } = this.query;
+    const pageButtons = [];
+
+    let initNumber = Math.floor(currentPage - displayedNumbers / 2) + 1;
+    let endNumber = Math.floor(currentPage + displayedNumbers / 2) + 1;
+
+    if (endNumber > this.pageCount) {
+      endNumber = this.pageCount;
+      initNumber = this.pageCount - displayedNumbers;
+    }
+
+    if (initNumber <= 0) {
+      initNumber = 1;
+      endNumber = initNumber + displayedNumbers;
+    }
+
+    if (displayedNumbers > this.pageCount) {
+      initNumber = initNumber > 0 ? initNumber : 1;
+      endNumber = this.pageCount + 1;
+    }
+
+    for (let i = initNumber; i < endNumber ; i++) {
+      pageButtons.push(
+        <IconButton
+          key={i}
+          disabled={this.query.currentPage === i}
+          onClick={() => this.changePage(i)}
+        >
+          {i}
+        </IconButton>
+      )
+    }
+    return (
+      <div>
+        {pageButtons.map(btn => btn)}
+      </div>
+    )
   };
 
   searchFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
     this.query.searchQuery = e.target.value;
+    this.query.currentPage = 1;
 
     _.debounce(() => {
       this.fetchProducts();
@@ -141,48 +175,60 @@ class ProductListPage extends React.Component<IProductListProps> {
     const { rows: products } = this.props.productsStore!.products;
 
     return (
-      <Grid container className={classes.productList}>
+      <Grid container
+            className={classes.productList}
+            justify="center"
+            alignItems="center"
+      >
         <Grid item xl={2} lg={2} md={1} />
         <Grid item xl={8} lg={8} md={10} sm={12} xs={12}>
           {/*<PaginationComponent/>*/}
 
-          <Grid container
-                justify="center"
-                alignItems="center">
+          <Grid item xs={10} className={classes.pagination}>
             <Paper elevation={6}>
-              <TextField
-                variant="filled"
-                label="Category"
-                onChange={this.searchFilter}
-                value={this.query.searchQuery}
-                InputProps={{
-                  endAdornment: (
-                    <>
-                      <InputAdornment position="end">
-                        <IconButton
-                          onClick={this.clearSearchFilter}
-                        >
-                          <Icon>close</Icon>
-                        </IconButton>
-                      </InputAdornment>
+                <TextField
+                  fullWidth={true}
+                  variant="filled"
+                  label="Category"
+                  onChange={this.searchFilter}
+                  value={this.query.searchQuery}
+                  InputProps={{
+                    endAdornment: (
+                      <>
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={this.clearSearchFilter}
+                          >
+                            <Icon>close</Icon>
+                          </IconButton>
+                        </InputAdornment>
 
-                      <InputAdornment position="end">
+                        <InputAdornment position="end">
                           <Icon color="primary">search</Icon>
-                      </InputAdornment>
-                    </>
-                  ),
-                }}
-              />
+                        </InputAdornment>
+                      </>
+                    ),
+                  }}
+                />
 
-              <IconButton onClick={this.previousPage}>
-                <Icon>arrow_back_ios</Icon>
-              </IconButton>
-              <IconButton>
-                {this.query.currentPage}
-              </IconButton>
-              <IconButton onClick={this.nextPage}>
-                <Icon>arrow_forward_ios</Icon>
-              </IconButton>
+              <Grid container
+                    justify="center"
+                    alignItems="center"
+              >
+                <IconButton
+                  onClick={() => this.changePage(this.query.currentPage - 1)}
+                  disabled={this.query.currentPage === 1}
+                >
+                  <Icon>arrow_back_ios</Icon>
+                </IconButton>
+                {this.renderPageNumbers()}
+                <IconButton
+                  onClick={() => this.changePage(this.query.currentPage + 1)}
+                  disabled={this.query.currentPage === this.pageCount}
+                >
+                  <Icon>arrow_forward_ios</Icon>
+                </IconButton>
+              </Grid>
             </Paper>
           </Grid>
 
