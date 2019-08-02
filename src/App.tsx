@@ -11,6 +11,7 @@ import './App.scss';
 
 import { theme } from './assets/themas/App.theme';
 import { AuthPage } from './pages/Auth/auth.component';
+import ShoppingCartPage from './pages/ShoppingCart/shopping-cart.component';
 import ProductListPage from './pages/ProductList/product-list.component';
 import ProductBuilderPage from './pages/admin/ProductBuilder/product-builder.component';
 import { CategoriesManagerPage } from './pages/admin/CategoriesManager/categories-manager.component';
@@ -60,6 +61,12 @@ const App: React.FC = () => {
             requiredRoles={[ Roles.MANAGER, Roles.ADMIN ]}
             exact path="/product_manager"
             component={ProductBuilderPage}
+          />
+
+          <RouteGuard
+            requiredAuth={true}
+            exact path="/shopping_cart"
+            component={ShoppingCartPage}
           />
 
           <RouteGuard

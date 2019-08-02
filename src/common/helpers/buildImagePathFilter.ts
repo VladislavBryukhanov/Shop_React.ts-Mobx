@@ -1,7 +1,7 @@
 import { FileResources } from '../constants';
 const fileBaseUrl = process.env.REACT_APP_RESOURCES_URL;
 
-export const buildImagePath = (path: string, resource_type: string, size_mode: string) => {
+export const buildImagePathFilter = (path: string, resource_type: string, size_mode: string) => {
   if (!path) {
     return FileResources.defaultPreview;
   }

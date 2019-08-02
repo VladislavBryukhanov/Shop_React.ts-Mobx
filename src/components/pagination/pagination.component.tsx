@@ -23,6 +23,8 @@ interface IRouterParams {
 interface IPaginationProps extends RouteComponentProps<IRouterParams> {
   fetchingMethod: (query: IPagingQuery, category?: string) => Promise<void>;
   count: number;
+  limit: number;
+  withSearch?: boolean;
   classes: any;
 }
 
@@ -50,7 +52,7 @@ class PaginationComponent extends React.Component<IPaginationProps> {
 
     this.query = {
       currentPage: +page!,
-      limit: PRODUCTS_ONE_PAGE_LIMIT,
+      limit: this.props.limit,
       searchQuery: ''
     };
   }
@@ -135,32 +137,34 @@ class PaginationComponent extends React.Component<IPaginationProps> {
     return (
       <Grid item xs={10} className={classes.pagination}>
         <Paper elevation={6}>
-          <TextField
-            fullWidth={true}
-            variant="filled"
-            label="Category"
-            onChange={this.searchFilter}
-            value={this.query.searchQuery}
-            InputProps={{
-              endAdornment: (
-                <>
-                  { this.query.searchQuery && (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={this.clearSearchFilter}
-                      >
-                        <Icon>close</Icon>
-                      </IconButton>
-                    </InputAdornment>
-                  )}
+          { this.props.withSearch && (
+            <TextField
+              fullWidth={true}
+              variant="filled"
+              label="Category"
+              onChange={this.searchFilter}
+              value={this.query.searchQuery}
+              InputProps={{
+                endAdornment: (
+                  <>
+                    { this.query.searchQuery && (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={this.clearSearchFilter}
+                        >
+                          <Icon>close</Icon>
+                        </IconButton>
+                      </InputAdornment>
+                    )}
 
-                  <InputAdornment position="end">
-                    <Icon color="primary">search</Icon>
-                  </InputAdornment>
-                </>
-              ),
-            }}
-          />
+                    <InputAdornment position="end">
+                      <Icon color="primary">search</Icon>
+                    </InputAdornment>
+                  </>
+                ),
+              }}
+            />
+          )}
 
           <Grid container
                 justify="center"
