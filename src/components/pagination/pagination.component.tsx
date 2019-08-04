@@ -2,12 +2,9 @@ import React from 'react';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import TextField from '@material-ui/core/TextField';
-import { computed, observable } from 'mobx';
+import { computed, observable, reaction } from 'mobx';
 import { RouteComponentProps } from 'react-router';
-import { withRouter } from 'react-router-dom';
 import { IPagingQuery } from '../../types/pagingQuery';
-import { PRODUCTS_ONE_PAGE_LIMIT } from '../../common/constants';
-import queryString from 'query-string';
 import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import withStyles from '@material-ui/core/styles/withStyles';
@@ -15,71 +12,60 @@ import { styles } from './pagination.styles';
 import Icon from '@material-ui/core/Icon';
 import _ from 'lodash';
 import { observer } from 'mobx-react';
+import { withPagingQuery } from './withPagingQuery';
 
-interface IRouterParams {
-  category: string;
-}
-
-interface IPaginationProps extends RouteComponentProps<IRouterParams> {
+interface IPaginationProps extends RouteComponentProps {
   fetchingMethod: (query: IPagingQuery, category?: string) => Promise<void>;
+  withSearch?: boolean;
   count: number;
   limit: number;
-  withSearch?: boolean;
+  query: IPagingQuery;
+  category?: string;
   classes: any;
 }
 
 @observer
 class PaginationComponent extends React.Component<IPaginationProps> {
-  @observable
-  query: IPagingQuery;
-  @computed
-  get category() {
-    return this.props.match.params.category;
-  }
-
   @computed
   get pageCount() {
-    let pageCount = (this.props.count / this.query.limit);
+    let pageCount = (this.props.count / this.props.limit);
     if (pageCount > Math.floor(pageCount)) {
       pageCount = Math.floor(pageCount) + 1;
     }
     return pageCount || 1;
   }
 
-  constructor(props: IPaginationProps) {
-    super(props);
-    const { page = 1 } = queryString.parse(this.props.history.location.search);
-
-    this.query = {
-      currentPage: +page!,
-      limit: this.props.limit,
-      searchQuery: ''
-    };
-  }
+  @observable
+  searchQuery: string = '';
 
   componentDidMount() {
-    this.props.fetchingMethod({ ...this.query }, this.category);
+    this.fetchingMethod();
+
+    reaction(
+      () => ({ ...this.props.query, category: this.props.category }),
+      (data, reaction) => {
+        this.fetchingMethod();
+      }, { equals: (from, to) => _.isEqual(from, to) }
+    );
   }
 
-  componentDidUpdate(prevProps: IPaginationProps) {
-    if (this.props.location !== prevProps.location) {
-      const { page = 1 } = queryString.parse(this.props.history.location.search);
-      this.query.currentPage = +page!;
+  fetchingMethod() {
+    const { searchQuery } = this;
+    const { query, limit, category } = this.props;
+    let currentPage = searchQuery ? 1 : query.currentPage;
 
-      this.props.fetchingMethod({ ...this.query }, this.category);
-    }
+    this.props.fetchingMethod({ searchQuery, currentPage, limit }, category);
   }
 
   changePage = (page: number) => {
-    this.query.currentPage = page;
     this.props.history.push({
       ...this.props.history,
-      search: `page=${this.query.currentPage}`
+      search: `page=${page}`
     })
   };
 
   renderPageNumbers = (displayedNumbers: number = 8) => {
-    const { currentPage } = this.query;
+    const { currentPage } = this.props.query;
     const pageButtons = [];
 
     let initNumber = Math.floor(currentPage - displayedNumbers / 2) + 1;
@@ -104,7 +90,7 @@ class PaginationComponent extends React.Component<IPaginationProps> {
       pageButtons.push(
         <IconButton
           key={i}
-          disabled={this.query.currentPage === i}
+          disabled={this.props.query.currentPage === i}
           onClick={() => this.changePage(i)}
         >
           {i}
@@ -119,16 +105,15 @@ class PaginationComponent extends React.Component<IPaginationProps> {
   };
 
   searchFilter = (e: React.ChangeEvent<HTMLInputElement>) => {
-    this.query.searchQuery = e.target.value;
-
+    this.searchQuery = e.target.value;
     _.debounce(() => {
-      this.props.fetchingMethod({ ...this.query, currentPage: 1 }, this.category);
+      this.fetchingMethod();
     }, 300)();
   };
 
   clearSearchFilter = () => {
-    this.query.searchQuery = '';
-    this.props.fetchingMethod({ ...this.query }, this.category);
+    this.searchQuery = '';
+    this.fetchingMethod();
   };
 
   render() {
@@ -143,11 +128,11 @@ class PaginationComponent extends React.Component<IPaginationProps> {
               variant="filled"
               label="Category"
               onChange={this.searchFilter}
-              value={this.query.searchQuery}
+              value={this.searchQuery}
               InputProps={{
                 endAdornment: (
                   <>
-                    { this.query.searchQuery && (
+                    { this.searchQuery && (
                       <InputAdornment position="end">
                         <IconButton
                           onClick={this.clearSearchFilter}
@@ -171,15 +156,15 @@ class PaginationComponent extends React.Component<IPaginationProps> {
                 alignItems="center"
           >
             <IconButton
-              onClick={() => this.changePage(this.query.currentPage - 1)}
-              disabled={this.query.currentPage === 1}
+              onClick={() => this.changePage(this.props.query.currentPage - 1)}
+              disabled={this.props.query.currentPage === 1}
             >
               <Icon>arrow_back_ios</Icon>
             </IconButton>
             {this.renderPageNumbers()}
             <IconButton
-              onClick={() => this.changePage(this.query.currentPage + 1)}
-              disabled={this.query.currentPage === this.pageCount}
+              onClick={() => this.changePage(this.props.query.currentPage + 1)}
+              disabled={this.props.query.currentPage === this.pageCount}
             >
               <Icon>arrow_forward_ios</Icon>
             </IconButton>
@@ -191,5 +176,5 @@ class PaginationComponent extends React.Component<IPaginationProps> {
 }
 
 export default withStyles(styles)(
-  withRouter(PaginationComponent)
+  withPagingQuery(PaginationComponent)
 );

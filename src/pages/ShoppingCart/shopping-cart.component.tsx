@@ -4,29 +4,32 @@ import { CartStore } from '../../stores/cartStore';
 import { IProduct } from '../../types/product';
 import { IPagingQuery } from '../../types/pagingQuery';
 import {
-  Badge, Button,
+  Button,
   Card, CardActions,
   CardContent,
   CardMedia, Fab,
   Grid,
-  Icon, IconButton,
+  Icon,
   MuiThemeProvider,
   Paper, Toolbar,
-  Typography, withStyles
+  Typography,
+  Box,
+  withStyles
 } from '@material-ui/core';
 import PaginationComponent from '../../components/pagination/pagination.component';
 import { toJS } from 'mobx';
 import { lightTheme } from '../../assets/themas/light.theme';
 import { buildImagePathFilter } from '../../common/helpers/buildImagePathFilter';
 import { currencyFilter } from '../../common/helpers/currencyFilter';
-import { AdapterLink } from '../../components/material-button-link/material-button-link.component';
 import { RootStore } from '../../stores/rootStore';
-import { styles } from '../ProductList/product-list.styles';
-import { CART_ONE_PAGE_LIMIT, PRODUCTS_ONE_PAGE_LIMIT } from '../../common/constants';
+import { styles } from './shopping-cart.styles';
+import { CART_ONE_PAGE_LIMIT } from '../../common/constants';
+import { withPagingQuery } from '../../components/pagination/withPagingQuery';
 
 interface ISoppingCartProps {
   cartStore?: CartStore;
   rootStore?: RootStore;
+  query: IPagingQuery;
   classes: any;
 }
 
@@ -34,18 +37,7 @@ interface ISoppingCartProps {
 @observer
 class ShoppingCartPage extends React.Component<ISoppingCartProps> {
 
-  async deleteProduct(product: IProduct) {
-    const confirmation = await this.props.rootStore!.openConfirmationDialog(
-      'Are you sure?',
-      `Do you want delete product "${product.name}"?`
-    );
-
-    if (confirmation) {
-
-    }
-  }
-
-  fetchMethod = async (query: IPagingQuery) => {
+  fetchCartProducts = async (query: IPagingQuery) => {
       this.props.cartStore!.fetchCartProducts(query);
   };
 
@@ -55,9 +47,10 @@ class ShoppingCartPage extends React.Component<ISoppingCartProps> {
 
   async excludeCartProduct(product: IProduct) {
     await this.props.cartStore!.excludeCartProduct(product.id!);
-    // this.fetchCartProducts({ currentPage, limit });
-    //TODO improve
-    // window.location.reload();
+    this.fetchCartProducts({
+      ...this.props.query,
+      limit: CART_ONE_PAGE_LIMIT
+    });
   }
 
   render() {
@@ -75,18 +68,22 @@ class ShoppingCartPage extends React.Component<ISoppingCartProps> {
           <PaginationComponent
             limit={CART_ONE_PAGE_LIMIT}
             count={toJS(productsCount)}
-            fetchingMethod={this.fetchMethod}
+            fetchingMethod={this.fetchCartProducts}
           />
 
           <Paper elevation={6}>
             <MuiThemeProvider theme={lightTheme}>
-              <Toolbar color="default" className={classes.toolbar}>
-                <Typography variant="h5" color="secondary">
-                  Total cost: {currencyFilter(totalCost, 'USD')}
-                </Typography>
-                <Button onClick={this.createOrderForCart} color="primary">
-                  Buy this products
-                </Button>
+              <Toolbar className={classes.toolbar}>
+                <Box width="100%">
+                  <Typography variant="h5" color="secondary">
+                    Total cost: {currencyFilter(totalCost, 'USD')}
+                  </Typography>
+                </Box>
+                <Box flexShrink={0}>
+                  <Button onClick={this.createOrderForCart} color="primary">
+                    Buy this products
+                  </Button>
+                </Box>
               </Toolbar>
             </MuiThemeProvider>
 
@@ -112,14 +109,20 @@ class ShoppingCartPage extends React.Component<ISoppingCartProps> {
                           {currencyFilter(product.price, 'USD')}
                         </Typography>
                       </CardContent>
-                      <CardActions >
-                        <Fab color="primary" onClick={() => this.excludeCartProduct(product)}>
-                          <Icon>close</Icon>
-                        </Fab>
-
-                        <Fab color="secondary">
-                          <Icon>attach_money</Icon>
-                        </Fab>
+                      <CardActions>
+                        <Box width="100%">
+                          <Fab color="secondary">
+                            <Icon>attach_money</Icon>
+                          </Fab>
+                        </Box>
+                        <Box flexShrink={0}>
+                          <Fab
+                            color="primary"
+                            onClick={() => this.excludeCartProduct(product)}
+                          >
+                            <Icon>close</Icon>
+                          </Fab>
+                        </Box>
                       </CardActions>
                     </Card>
                   </MuiThemeProvider>
@@ -133,4 +136,6 @@ class ShoppingCartPage extends React.Component<ISoppingCartProps> {
   }
 }
 
-export default withStyles(styles)(ShoppingCartPage);
+export default withStyles(styles)(
+  withPagingQuery(ShoppingCartPage)
+);

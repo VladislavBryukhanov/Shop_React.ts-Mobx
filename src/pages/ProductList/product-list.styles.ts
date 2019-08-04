@@ -18,5 +18,9 @@ export const styles = (theme: Theme) => createStyles({
     margin: 'auto',
     paddingTop: 16,
     paddingBottom: 16
+  },
+  fabExclude: {
+    backgroundColor: 'grey',
+    color: 'white'
   }
 });

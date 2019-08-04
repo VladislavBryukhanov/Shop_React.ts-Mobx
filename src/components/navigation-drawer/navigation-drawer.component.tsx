@@ -23,7 +23,7 @@ import { AdapterLink } from '../material-button-link/material-button-link.compon
 import { styles } from './navigation-drawer.styles';
 import { FileResources } from '../../common/constants';
 import { CartStore } from '../../stores/cartStore';
-import { Badge, Typography } from '@material-ui/core';
+import { Badge } from '@material-ui/core';
 
 interface INavigationDrawerProps {
   authStore?: AuthStore;
