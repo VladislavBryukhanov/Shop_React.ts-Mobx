@@ -21,7 +21,7 @@ import { styles } from './product-builder.styles';
 import withStyles from '@material-ui/core/styles/withStyles';
 import { RootStore } from '../../../stores/rootStore';
 import { RouteComponentProps, withRouter } from 'react-router';
-import { buildImagePath } from '../../../common/helpers/buildImagePath';
+import { buildImagePathFilter } from '../../../common/helpers/buildImagePathFilter';
 import _ from 'lodash';
 import Toolbar from '@material-ui/core/Toolbar';
 import IconButton from '@material-ui/core/IconButton';
@@ -82,7 +82,7 @@ class ProductBuilderPage extends React.Component<IProductBuilderProps> {
         description,
         attachedPhoto: previewPhoto,
       };
-      this.photoPreview = buildImagePath(previewPhoto, 'preview_photo', 'thumbnail');
+      this.photoPreview = buildImagePathFilter(previewPhoto, 'preview_photo', 'thumbnail');
     }
   }
 

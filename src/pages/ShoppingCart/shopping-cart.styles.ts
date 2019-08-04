@@ -1,7 +1,7 @@
 import { Theme, createStyles } from '@material-ui/core/styles';
 
 export const styles = (theme: Theme) => createStyles({
-  productList: {
+  shoppingCart: {
     paddingLeft: 64
   },
   card: {
@@ -19,8 +19,7 @@ export const styles = (theme: Theme) => createStyles({
     paddingTop: 16,
     paddingBottom: 16
   },
-  fabExclude: {
-    backgroundColor: 'grey',
-    color: 'white'
+  toolbar: {
+    backgroundColor: 'white'
   }
 });

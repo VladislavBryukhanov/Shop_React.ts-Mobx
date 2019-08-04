@@ -22,10 +22,13 @@ import { CategoriesStore } from '../../stores/categoriesStore';
 import { AdapterLink } from '../material-button-link/material-button-link.component';
 import { styles } from './navigation-drawer.styles';
 import { FileResources } from '../../common/constants';
+import { CartStore } from '../../stores/cartStore';
+import { Badge } from '@material-ui/core';
 
 interface INavigationDrawerProps {
   authStore?: AuthStore;
   categoriesStore?: CategoriesStore;
+  cartStore?: CartStore;
   classes: any
 }
 interface INavigationDrawerState {
@@ -34,7 +37,7 @@ interface INavigationDrawerState {
   adminCollapsed: boolean;
   [key: string]: boolean;
 }
-@inject('authStore', 'categoriesStore')
+@inject('authStore', 'categoriesStore', 'cartStore')
 @observer
 class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigationDrawerState> {
   // TODO change state to mobx observable
@@ -49,6 +52,7 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
 
   componentDidMount() {
     this.props.categoriesStore!.fetchCategories();
+    this.props.cartStore!.fetchShoppingCart();
   }
 
   openCollapse = (name: string) => {
@@ -149,14 +153,24 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
               </ListItem>
             </Collapse>
 
-            <ListItem button>
+            <ListItem
+              button
+              component={AdapterLink}
+              to="/shopping_cart"
+            >
               <ListItemIcon>
-                <Icon>shopping_cart</Icon>
+                <Badge badgeContent={this.props.cartStore!.productsCount} color="secondary">
+                  <Icon>shopping_cart</Icon>
+                </Badge>
               </ListItemIcon>
               <ListItemText primary="Shopping cart" />
             </ListItem>
 
-            <ListItem button>
+            <ListItem
+              button
+              component={AdapterLink}
+              to="/orders"
+            >
               <ListItemIcon>
                 <Icon>list_alt</Icon>
               </ListItemIcon>

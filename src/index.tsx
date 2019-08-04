@@ -7,6 +7,8 @@ import authStore from './stores/authStore';
 import rootStore from './stores/rootStore';
 import categoriesStore from './stores/categoriesStore';
 import productsStore from './stores/productsStore';
+import cartStore from './stores/cartStore';
+import orderStore from './stores/orderStore';
 import App from './App';
 import './index.scss'
 
@@ -15,6 +17,8 @@ const stores = {
   authStore,
   categoriesStore,
   productsStore,
+  cartStore,
+  orderStore
 };
 
 ReactDOM.render((

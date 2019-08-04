@@ -13,32 +13,40 @@ import {
   Typography,
 } from '@material-ui/core';
 import { inject, observer } from 'mobx-react';
-import { RouteComponentProps } from 'react-router';
 import { withStyles } from '@material-ui/core/styles';
 import { RootStore } from '../../stores/rootStore';
 import { ProductsStore } from '../../stores/productsStore';
 import { IProduct } from '../../types/product';
 import { IPagingQuery } from '../../types/pagingQuery';
-import { buildImagePath } from '../../common/helpers/buildImagePath';
+import { buildImagePathFilter } from '../../common/helpers/buildImagePathFilter';
 import { styles } from './product-list.styles';
 import PaginationComponent from '../../components/pagination/pagination.component';
 import { lightTheme } from '../../assets/themas/light.theme';
 import { AdapterLink } from '../../components/material-button-link/material-button-link.component';
 import { toJS } from 'mobx';
+import { currencyFilter } from '../../common/helpers/currencyFilter';
+import { CartStore } from '../../stores/cartStore';
+import { PRODUCTS_ONE_PAGE_LIMIT } from '../../common/constants';
+import Box from '@material-ui/core/Box';
+import { withPagingQuery } from '../../components/pagination/withPagingQuery';
 
-interface IRouterParams {
-  category: string;
-}
-interface IProductListProps extends RouteComponentProps<IRouterParams> {
+interface IProductListProps {
   productsStore?: ProductsStore;
   rootStore?: RootStore;
+  cartStore?: CartStore;
   topProducts?: boolean;
+  query: IPagingQuery;
+  category?: string;
   classes: any;
 }
 
-@inject('productsStore', 'rootStore')
+@inject('productsStore', 'rootStore', 'cartStore')
 @observer
 class ProductListPage extends React.Component<IProductListProps> {
+
+  isInCart(prodId: number) {
+    return this.props.cartStore!.productIds.includes(prodId);
+  }
 
   async deleteProduct(product: IProduct) {
     const confirmation = await this.props.rootStore!.openConfirmationDialog(
@@ -48,13 +56,14 @@ class ProductListPage extends React.Component<IProductListProps> {
 
     if (confirmation) {
       await this.props.productsStore!.deleteProductById(product.id!);
-      // this.fetchProducts();
-      //TODO improve
-      window.location.reload();
+      this.fetchProducts({
+        ...this.props.query,
+        limit: PRODUCTS_ONE_PAGE_LIMIT
+      }, this.props.category);
     }
   }
 
-  fetchMethod = async (query: IPagingQuery, category?: string) => {
+  fetchProducts = async (query: IPagingQuery, category?: string) => {
     if (this.props.topProducts) {
       this.props.productsStore!.fetchTopProducts(query);
     } else {
@@ -76,7 +85,9 @@ class ProductListPage extends React.Component<IProductListProps> {
         <Grid item xl={8} lg={8} md={10} sm={12} xs={12}>
           <PaginationComponent
             count={toJS(count)}
-            fetchingMethod={this.fetchMethod}
+            limit={PRODUCTS_ONE_PAGE_LIMIT}
+            withSearch={true}
+            fetchingMethod={this.fetchProducts}
           />
 
           <Paper elevation={6}>
@@ -90,7 +101,7 @@ class ProductListPage extends React.Component<IProductListProps> {
                     <Card className={classes.card}>
                       <CardMedia
                         className={classes.media}
-                        image={buildImagePath(product.previewPhoto, 'preview_photo', 'thumbnail')}/>
+                        image={buildImagePathFilter(product.previewPhoto, 'preview_photo', 'thumbnail')}/>
                       <CardContent>
                         <Typography gutterBottom variant="h5" color="secondary">
                           {product.name}
@@ -99,7 +110,7 @@ class ProductListPage extends React.Component<IProductListProps> {
                           {product.description}
                         </Typography>
                         <Typography variant="h5" color="primary" className={classes.price}>
-                          {`${product.price}$`}
+                          {currencyFilter(product.price, 'USD')}
                         </Typography>
                         { !!product.OrderCount && (
                           <Typography variant="subtitle2" color="textSecondary">
@@ -111,23 +122,41 @@ class ProductListPage extends React.Component<IProductListProps> {
                         )}
                       </CardContent>
                       <CardActions >
-                        <Fab color="secondary">
-                          <Icon>shopping_cart</Icon>
-                        </Fab>
 
-                        <Fab
-                          component={AdapterLink}
-                          to={{
-                            pathname: '/product_manager',
-                            state: { editableProduct: toJS(product) }
-                          }}
-                        >
-                          <Icon>edit</Icon>
-                        </Fab>
+                        <Box width="100%">
+                          { this.isInCart(product.id!) ? (
+                              <Fab
+                                className={classes.fabExclude}
+                                onClick={() => this.props.cartStore!.excludeCartProduct(product.id!)}
+                              >
+                                <Icon>remove_shopping_cart</Icon>
+                              </Fab>
+                            ) : (
+                              <Fab
+                                color="secondary"
+                                onClick={() => this.props.cartStore!.insertCartProduct(product.id!)}
+                              >
+                                <Icon>shopping_cart</Icon>
+                              </Fab>
+                            )
+                          }
+                        </Box>
 
-                        <Fab color="primary" onClick={() => this.deleteProduct(product)}>
-                          <Icon>delete_forever</Icon>
-                        </Fab>
+                        <Box flexShrink={0}>
+                          <Fab
+                            component={AdapterLink}
+                            to={{
+                              pathname: '/product_manager',
+                              state: { editableProduct: toJS(product) }
+                            }}
+                          >
+                            <Icon>edit</Icon>
+                          </Fab>
+
+                          <Fab color="primary" onClick={() => this.deleteProduct(product)}>
+                            <Icon>delete_forever</Icon>
+                          </Fab>
+                        </Box>
 
                       </CardActions>
                     </Card>
@@ -142,4 +171,6 @@ class ProductListPage extends React.Component<IProductListProps> {
   }
 }
 
-export default withStyles(styles)(ProductListPage);
+export default withStyles(styles)(
+  withPagingQuery(ProductListPage)
+);
