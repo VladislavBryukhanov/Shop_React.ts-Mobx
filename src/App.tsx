@@ -16,6 +16,7 @@ import ProductListPage from './pages/ProductList/product-list.component';
 import ProductBuilderPage from './pages/admin/ProductBuilder/product-builder.component';
 import { CategoriesManagerPage } from './pages/admin/CategoriesManager/categories-manager.component';
 import { NotFoundPage } from './pages/NotFound/not-found.component';
+import OrderListPage from './pages/OrderList/order-list.component';
 
 const App: React.FC = () => {
   return (
@@ -67,6 +68,12 @@ const App: React.FC = () => {
             requiredAuth={true}
             exact path="/shopping_cart"
             component={ShoppingCartPage}
+          />
+
+          <RouteGuard
+            requiredAuth={true}
+            exact path="/orders"
+            component={OrderListPage}
           />
 
           <RouteGuard

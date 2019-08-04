@@ -166,7 +166,11 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
               <ListItemText primary="Shopping cart" />
             </ListItem>
 
-            <ListItem button>
+            <ListItem
+              button
+              component={AdapterLink}
+              to="/orders"
+            >
               <ListItemIcon>
                 <Icon>list_alt</Icon>
               </ListItemIcon>

@@ -25,15 +25,18 @@ import { RootStore } from '../../stores/rootStore';
 import { styles } from './shopping-cart.styles';
 import { CART_ONE_PAGE_LIMIT } from '../../common/constants';
 import { withPagingQuery } from '../../components/pagination/withPagingQuery';
+import { OrderStore } from '../../stores/orderStore';
+import { RouteComponentProps } from 'react-router';
 
-interface ISoppingCartProps {
+interface ISoppingCartProps extends RouteComponentProps {
   cartStore?: CartStore;
+  orderStore?: OrderStore;
   rootStore?: RootStore;
   query: IPagingQuery;
   classes: any;
 }
 
-@inject('cartStore', 'rootStore')
+@inject('cartStore', 'orderStore', 'rootStore')
 @observer
 class ShoppingCartPage extends React.Component<ISoppingCartProps> {
 
@@ -41,8 +44,27 @@ class ShoppingCartPage extends React.Component<ISoppingCartProps> {
       this.props.cartStore!.fetchCartProducts(query);
   };
 
-  createOrderForCart = async() => {
+  createOrderForCart = async(product?: IProduct) => {
+    let { productIds, productsCount, totalCost } = this.props.cartStore!;
+    let totalCostFormatted = currencyFilter(totalCost, 'USD');
+    let warningDescription = `Do you want to make order with ${productsCount} product, total cost is ${totalCostFormatted}?`;;
 
+    if (product) {
+      productIds = [product!.id!];
+      totalCostFormatted = currencyFilter(product.price, 'USD');
+      warningDescription = `Do you want to make order for one product: ${product.name}, total cost is ${totalCostFormatted}?`;
+    }
+
+    const confirm = await this.props.rootStore!.openConfirmationDialog(
+      'Confirm transaction',
+      warningDescription
+    );
+
+    if (confirm) {
+      await this.props.orderStore!.createPersonalOrder(productIds);
+      this.props.cartStore!.fetchShoppingCart();
+      this.props.history.push('/orders');
+    }
   };
 
   async excludeCartProduct(product: IProduct) {
@@ -80,7 +102,7 @@ class ShoppingCartPage extends React.Component<ISoppingCartProps> {
                   </Typography>
                 </Box>
                 <Box flexShrink={0}>
-                  <Button onClick={this.createOrderForCart} color="primary">
+                  <Button onClick={() => this.createOrderForCart()} color="primary">
                     Buy this products
                   </Button>
                 </Box>
@@ -111,7 +133,10 @@ class ShoppingCartPage extends React.Component<ISoppingCartProps> {
                       </CardContent>
                       <CardActions>
                         <Box width="100%">
-                          <Fab color="secondary">
+                          <Fab
+                            color="secondary"
+                            onClick={() => this.createOrderForCart(product)}
+                          >
                             <Icon>attach_money</Icon>
                           </Fab>
                         </Box>
