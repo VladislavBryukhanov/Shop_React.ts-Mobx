@@ -2,6 +2,7 @@ import React from 'react';
 import { inject, observer } from 'mobx-react';
 import { observable } from 'mobx';
 import { OrderStore } from '../../stores/orderStore';
+import { RouteComponentProps, withRouter } from 'react-router';
 import {
   Grid,
   Paper,
@@ -12,27 +13,29 @@ import {
   Divider,
   List,
   Button,
-  MuiThemeProvider
+  MuiThemeProvider,
+  ListItemSecondaryAction,
+  ListItemAvatar
 } from '@material-ui/core';
+import withStyles from '@material-ui/core/styles/withStyles';
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import { IOrder } from '../../types/order';
 import { IProduct } from '../../types/product';
-import withStyles from '@material-ui/core/styles/withStyles';
 import { styles } from './order-list.styles';
 import { buildImagePathFilter } from '../../common/helpers/buildImagePathFilter';
 import { currencyFilter } from '../../common/helpers/currencyFilter';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import { dateFormatFilter } from '../../common/helpers/dateFormatFilter';
 import { lightTheme } from '../../assets/themas/light.theme';
 import { RootStore } from '../../stores/rootStore';
 
-interface IOrderListProps {
+interface IRouteParams {
+  userId: string;
+}
+interface IOrderListProps extends RouteComponentProps<IRouteParams> {
   orderStore: OrderStore,
   rootStore: RootStore,
   classes: any
 }
-
 interface ICollapsable {
   [key: number]: boolean
 }
@@ -44,6 +47,10 @@ class OrderListPage extends React.Component<IOrderListProps> {
   collapse: ICollapsable = {};
 
   componentDidMount() {
+    const { userId } = this.props.match.params;
+    if (userId) {
+      return this.props.orderStore!.fetchUsersOrder(+userId);
+    }
     this.props.orderStore!.fetchPersonalOrders();
   }
 
@@ -140,4 +147,6 @@ class OrderListPage extends React.Component<IOrderListProps> {
   }
 }
 
-export default withStyles(styles)(OrderListPage);
+export default withStyles(styles)(
+  withRouter(OrderListPage)
+);

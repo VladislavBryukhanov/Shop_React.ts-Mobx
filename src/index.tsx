@@ -9,6 +9,8 @@ import categoriesStore from './stores/categoriesStore';
 import productsStore from './stores/productsStore';
 import cartStore from './stores/cartStore';
 import orderStore from './stores/orderStore';
+import usersStore from './stores/usersStore';
+import chatStore from './stores/chatStore';
 import App from './App';
 import './index.scss'
 
@@ -18,7 +20,9 @@ const stores = {
   categoriesStore,
   productsStore,
   cartStore,
-  orderStore
+  orderStore,
+  usersStore,
+  chatStore
 };
 
 ReactDOM.render((

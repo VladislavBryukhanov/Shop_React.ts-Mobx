@@ -77,7 +77,7 @@ class ShoppingCartPage extends React.Component<ISoppingCartProps> {
 
   render() {
     const { classes } = this.props;
-    const { products, productIds, productsCount, totalCost } = this.props.cartStore!;
+    const { products, productsCount, totalCost } = this.props.cartStore!;
 
     return (
       <Grid container

@@ -1,29 +1,32 @@
 import React from 'react';
 import clsx from 'clsx';
-import { withStyles } from '@material-ui/core/styles';
-import Drawer from '@material-ui/core/Drawer';
-import List from '@material-ui/core/List';
-import Divider from '@material-ui/core/Divider';
-import IconButton from '@material-ui/core/IconButton';
+import {
+  withStyles,
+  Drawer,
+  List,
+  Divider,
+  IconButton,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Collapse,
+  Icon,
+  Avatar,
+  Badge
+} from '@material-ui/core';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
 import GradeIcon from '@material-ui/icons/Grade';
-
 import { ExpandLess, ExpandMore } from '@material-ui/icons';
-import Collapse from '@material-ui/core/Collapse';
-import Icon from '@material-ui/core/Icon';
-import Avatar from '@material-ui/core/Avatar';
+
 import { inject, observer } from 'mobx-react';
 import { AuthStore } from '../../stores/authStore';
 import { CategoriesStore } from '../../stores/categoriesStore';
 import { AdapterLink } from '../material-button-link/material-button-link.component';
 import { styles } from './navigation-drawer.styles';
-import { FileResources } from '../../common/constants';
+import { FileResources, Roles } from '../../common/constants';
 import { CartStore } from '../../stores/cartStore';
-import { Badge } from '@material-ui/core';
+import { computed } from 'mobx';
 
 interface INavigationDrawerProps {
   authStore?: AuthStore;
@@ -37,9 +40,15 @@ interface INavigationDrawerState {
   adminCollapsed: boolean;
   [key: string]: boolean;
 }
+
 @inject('authStore', 'categoriesStore', 'cartStore')
 @observer
 class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigationDrawerState> {
+  @computed
+  get isMeUser() {
+    return this.props.authStore!.me!.Role!.name === Roles.USER;
+  }
+  
   // TODO change state to mobx observable
   constructor(props: INavigationDrawerProps) {
     super(props);
@@ -97,7 +106,11 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
               <ListItemText primary="Top popular" />
             </ListItem>
 
-            <ListItem button onClick={() => this.openCollapse('categoriesCollapsed')}>
+            <ListItem
+              button
+              selected={drawerOpened && categoriesCollapsed}
+              onClick={() => this.openCollapse('categoriesCollapsed')}
+            >
               <ListItemIcon>
                 <Icon>dashboard</Icon>
               </ListItemIcon>
@@ -115,43 +128,54 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
               ))}
             </Collapse>
 
-            <ListItem button onClick={() => this.openCollapse('adminCollapsed')}>
-              <ListItemIcon>
-                <Icon>settings_applications</Icon>
-              </ListItemIcon>
-              <ListItemText primary="Admin" />
-              {adminCollapsed ? <ExpandLess /> : <ExpandMore />}
-            </ListItem>
-            <Collapse in={drawerOpened && adminCollapsed} timeout="auto" unmountOnExit>
-              <ListItem
-                button
-                component={AdapterLink}
-                to="/product_manager"
-              >
-                <ListItemText inset primary="Create product" />
-                <ListItemIcon>
-                  <Icon>add</Icon>
-                </ListItemIcon>
-              </ListItem>
-
-              <ListItem
-                button
-                component={AdapterLink}
-                to="/categories_manager"
-              >
-                <ListItemText inset primary="Manage categories" />
-                <ListItemIcon>
-                  <Icon>add_to_photos</Icon>
-                </ListItemIcon>
-              </ListItem>
-
-              <ListItem button>
-                <ListItemText inset primary="Users" />
-                <ListItemIcon>
-                  <Icon>people</Icon>
-                </ListItemIcon>
-              </ListItem>
-            </Collapse>
+            { !this.isMeUser && (
+              <>
+                <ListItem button
+                  onClick={() => this.openCollapse('adminCollapsed')} 
+                  selected={drawerOpened && adminCollapsed}
+                >
+                  <ListItemIcon>
+                    <Icon>settings_applications</Icon>
+                  </ListItemIcon>
+                  <ListItemText primary="Admin" />
+                  {adminCollapsed ? <ExpandLess /> : <ExpandMore />}
+                </ListItem>
+                <Collapse in={drawerOpened && adminCollapsed} timeout="auto" unmountOnExit>
+                  <ListItem
+                    button
+                    component={AdapterLink}
+                    to="/product_manager"
+                  >
+                    <ListItemText inset primary="Create product" />
+                    <ListItemIcon>
+                      <Icon>add</Icon>
+                    </ListItemIcon>
+                  </ListItem>
+    
+                  <ListItem
+                    button
+                    component={AdapterLink}
+                    to="/categories_manager"
+                  >
+                    <ListItemText inset primary="Manage categories" />
+                    <ListItemIcon>
+                      <Icon>add_to_photos</Icon>
+                    </ListItemIcon>
+                  </ListItem>
+    
+                  <ListItem
+                    button
+                    component={AdapterLink}
+                    to="/users"
+                  >
+                    <ListItemText inset primary="Users" />
+                    <ListItemIcon>
+                      <Icon>people</Icon>
+                    </ListItemIcon>
+                  </ListItem>
+                </Collapse>
+              </>
+            )}
 
             <ListItem
               button
