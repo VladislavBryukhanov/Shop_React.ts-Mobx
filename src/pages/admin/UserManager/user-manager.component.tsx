@@ -1,5 +1,5 @@
 import React from 'react';
-import { observable, toJS } from 'mobx';
+import { observable, toJS, computed } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import {
   Grid,
@@ -23,27 +23,34 @@ import { RootStore } from '../../../stores/rootStore';
 import { UsersStore } from '../../../stores/usersStore';
 import { dateFormatFilter } from '../../../common/helpers/dateFormatFilter';
 import PaginationComponent from '../../../components/pagination/pagination.component';
-import { USERS_ONE_PAGE_LIMIT } from '../../../common/constants';
+import { USERS_ONE_PAGE_LIMIT, Roles } from '../../../common/constants';
 import { IPagingQuery } from '../../../types/pagingQuery';
 import { withPagingQuery } from '../../../components/pagination/withPagingQuery';
 import { styles } from './user-list.styles';
-
-interface IUserManageProps {
-  usersStore?: UsersStore;
-  rootStore?: RootStore;
-  query: IPagingQuery;
-  classes: any;
-}
+import { AdapterLink } from '../../../components/material-button-link/material-button-link.component';
+import { AuthStore } from '../../../stores/authStore';
 
 interface ICollapsable {
   [key: number]: boolean
 }
+interface IUserManageProps {
+  usersStore?: UsersStore;
+  rootStore?: RootStore;
+  authStore?: AuthStore;
+  query: IPagingQuery;
+  classes: any;
+}
 
-@inject('usersStore', 'rootStore')
+@inject('usersStore', 'authStore', 'rootStore')
 @observer
 class UserManagerPage extends React.Component<IUserManageProps> {
   @observable.deep
   collapse: ICollapsable = {};
+
+  @computed
+  get isAdmin() {
+    return this.props.authStore!.me!.Role!.name === Roles.ADMIN;
+  }
 
   componentDidMount() {
     this.fetchUsers({
@@ -130,27 +137,48 @@ class UserManagerPage extends React.Component<IUserManageProps> {
                       </Box>
 
                       <Box flexGrow={1}>
-                        <Button fullWidth={true}>
+                        {/* <Button>
+                          component={AdapterLink}
+                          to={{
+                            path: '/orders',
+                            search: `userId=${user.id}`
+                          }}
+                          fullWidth={true}
+                        >
                           Show order list
-                        </Button>
+                        </Button> */}
+
+                        {/* TODO Button is not working issue: https://github.com/mui-org/material-ui/issues/16846 */}
+                        <ListItem
+                          className={classes.buttonLinkWrapper}
+                          component={AdapterLink}
+                          to={`/review_order/${user.id}`}
+                        >
+                          <Button fullWidth={true}>
+                            Show order list
+                          </Button>
+                        </ListItem>
                       </Box>
 
-                      <Box flexGrow={1}>
-                        <Select
-                          fullWidth={true}
-                          variant="outlined"
-                          onChange={(e) => this.onRoleChanged(e, user)}
-                          value={user.Role!.id}
-                        >
-                          {
-                            availableRoles.map(role =>
-                              <MenuItem value={role.id} key={role.id}>
-                                {role.name}
-                              </MenuItem>
-                            )
-                          }
-                        </Select>
-                      </Box>
+                      { this.isAdmin && (
+                        <Box flexGrow={1}>
+                          <Select
+                            fullWidth={true}
+                            variant="outlined"
+                            onChange={(e) => this.onRoleChanged(e, user)}
+                            value={user.Role!.id}
+                          >
+                            {
+                              availableRoles.map(role =>
+                                <MenuItem value={role.id} key={role.id}>
+                                  {role.name}
+                                </MenuItem>
+                              )
+                            }
+                          </Select>
+                        </Box>
+                      )}
+                      
                     </Box>
                 
                   </Collapse>

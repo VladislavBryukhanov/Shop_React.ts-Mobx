@@ -6,5 +6,10 @@ export const styles = (theme: Theme) => createStyles({
   },
   creationDate: {
     textAlign: 'right'
+  },
+  buttonLinkWrapper: {
+    margin: 0,
+    padding: 0,
+    alignItems: 'center'
   }
 });

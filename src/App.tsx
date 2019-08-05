@@ -79,6 +79,12 @@ const App: React.FC = () => {
 
           <RouteGuard
             requiredRoles={[ Roles.MANAGER, Roles.ADMIN ]}
+            exact path="/review_order/:userId"
+            component={OrderListPage}
+          />
+
+          <RouteGuard
+            requiredRoles={[ Roles.MANAGER, Roles.ADMIN ]}
             exact path="/users"
             component={UserManagerPage}
           />

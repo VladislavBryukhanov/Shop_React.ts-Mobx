@@ -23,29 +23,36 @@ import { styles } from './product-list.styles';
 import PaginationComponent from '../../components/pagination/pagination.component';
 import { lightTheme } from '../../assets/themas/light.theme';
 import { AdapterLink } from '../../components/material-button-link/material-button-link.component';
-import { toJS } from 'mobx';
+import { toJS, computed } from 'mobx';
 import { currencyFilter } from '../../common/helpers/currencyFilter';
 import { CartStore } from '../../stores/cartStore';
-import { PRODUCTS_ONE_PAGE_LIMIT } from '../../common/constants';
+import { PRODUCTS_ONE_PAGE_LIMIT, Roles } from '../../common/constants';
 import Box from '@material-ui/core/Box';
 import { withPagingQuery } from '../../components/pagination/withPagingQuery';
+import { AuthStore } from '../../stores/authStore';
 
 interface IProductListProps {
   productsStore?: ProductsStore;
   rootStore?: RootStore;
   cartStore?: CartStore;
+  authStore?: AuthStore;
   topProducts?: boolean;
   query: IPagingQuery;
   category?: string;
   classes: any;
 }
 
-@inject('productsStore', 'rootStore', 'cartStore')
+@inject('productsStore', 'rootStore', 'cartStore', 'authStore')
 @observer
 class ProductListPage extends React.Component<IProductListProps> {
 
   isInCart(prodId: number) {
     return this.props.cartStore!.productIds.includes(prodId);
+  }
+
+  @computed
+  get isMeUser() {
+    return this.props.authStore!.me!.Role!.name === Roles.USER;
   }
 
   async deleteProduct(product: IProduct) {
@@ -142,21 +149,23 @@ class ProductListPage extends React.Component<IProductListProps> {
                           }
                         </Box>
 
-                        <Box flexShrink={0}>
-                          <Fab
-                            component={AdapterLink}
-                            to={{
-                              pathname: '/product_manager',
-                              state: { editableProduct: toJS(product) }
-                            }}
-                          >
-                            <Icon>edit</Icon>
-                          </Fab>
+                        { !this.isMeUser && (
+                          <Box flexShrink={0}>
+                            <Fab
+                              component={AdapterLink}
+                              to={{
+                                pathname: '/product_manager',
+                                state: { editableProduct: toJS(product) }
+                              }}
+                            >
+                              <Icon>edit</Icon>
+                            </Fab>
 
-                          <Fab color="primary" onClick={() => this.deleteProduct(product)}>
-                            <Icon>delete_forever</Icon>
-                          </Fab>
-                        </Box>
+                            <Fab color="primary" onClick={() => this.deleteProduct(product)}>
+                              <Icon>delete_forever</Icon>
+                            </Fab>
+                          </Box>
+                        )}
 
                       </CardActions>
                     </Card>
