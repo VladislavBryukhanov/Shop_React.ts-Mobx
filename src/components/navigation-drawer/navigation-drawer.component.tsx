@@ -145,7 +145,11 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
                 </ListItemIcon>
               </ListItem>
 
-              <ListItem button>
+              <ListItem
+                button
+                component={AdapterLink}
+                to="/users"
+              >
                 <ListItemText inset primary="Users" />
                 <ListItemIcon>
                   <Icon>people</Icon>

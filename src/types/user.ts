@@ -1,12 +1,12 @@
 export interface IUser extends ICredentials {
-  email: string;
-  password: string;
+  id?: number;
   firstName: string;
   lastName: string;
   gender?: boolean | string;
   birthday?: number | null;
   ContactInfo?: IContactInfo;
   Role?: IRole;
+  createdAt?: string;
   [id: string]: string | boolean | null | number | IContactInfo | undefined | IRole;
 }
 
@@ -21,5 +21,6 @@ export interface IContactInfo {
 }
 
 export interface IRole {
+  id: number;
   name: string;
 }

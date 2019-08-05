@@ -17,6 +17,7 @@ import ProductBuilderPage from './pages/admin/ProductBuilder/product-builder.com
 import { CategoriesManagerPage } from './pages/admin/CategoriesManager/categories-manager.component';
 import { NotFoundPage } from './pages/NotFound/not-found.component';
 import OrderListPage from './pages/OrderList/order-list.component';
+import UserManagerPage from './pages/admin/UserManager/user-manager.component';
 
 const App: React.FC = () => {
   return (
@@ -74,6 +75,12 @@ const App: React.FC = () => {
             requiredAuth={true}
             exact path="/orders"
             component={OrderListPage}
+          />
+
+          <RouteGuard
+            requiredRoles={[ Roles.MANAGER, Roles.ADMIN ]}
+            exact path="/users"
+            component={UserManagerPage}
           />
 
           <RouteGuard

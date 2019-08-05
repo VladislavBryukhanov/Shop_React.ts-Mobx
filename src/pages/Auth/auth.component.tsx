@@ -288,10 +288,7 @@ export class AuthPage extends React.Component<IAuthProps> {
                         >
                           {
                             this.genderList.map(gender =>
-                              <MenuItem
-                                value={gender.value}
-                                key={gender.name}
-                              >
+                              <MenuItem value={gender.value} key={gender.name}>
                                 {gender.name}
                               </MenuItem>
                             )
