@@ -1,7 +1,7 @@
 import React from 'react';
 import { inject, observer } from 'mobx-react';
 import { Redirect, Route } from 'react-router-dom';
-import { AuthState } from '../../common/constants';
+import { AuthState, Roles } from '../../common/constants';
 import { AuthStore } from '../../stores/authStore';
 import { RouteProps } from 'react-router';
 import Grid from '@material-ui/core/Grid';
@@ -9,6 +9,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import NavigationDrawer from '../navigation-drawer/navigation-drawer.component';
 import { NotFoundPage } from '../../pages/NotFound/not-found.component';
 import { ToolBar } from '../toolbar/toolbar.component';
+import OpenChatButton from '../Chat/open-chat-button/open-chat-button.component';
 
 interface IRouteGuard extends RouteProps{
   requiredRoles?: string[];
@@ -48,14 +49,16 @@ export class RouteGuard extends React.Component<IRouteGuard> {
   }
 
   render() {
-    const { authState } = this.props.authStore!;
-
+    const { authState, me } = this.props.authStore!;
     return (
       <>
       {authState ? (
         <>
           {authState === AuthState.SignedIn ? <NavigationDrawer/> : <ToolBar/>}
           {this.visibleContent()}
+          { me && me.Role!.name === Roles.USER && (
+            <OpenChatButton/>
+          )}
         </>
       ) : (
         <Grid container
