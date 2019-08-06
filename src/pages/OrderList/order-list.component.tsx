@@ -113,7 +113,7 @@ class OrderListPage extends React.Component<IOrderListProps> {
                             buildImagePathFilter(
                               product.previewPhoto,
                               'preview_photo',
-                              'thumbnail'
+                              'micro_thumbnail'
                             )
                           }/>
                         </ListItemAvatar>

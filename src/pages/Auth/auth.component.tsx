@@ -150,7 +150,7 @@ export class AuthPage extends React.Component<IAuthProps> {
       this.validateField(key);
     });
 
-    return _.chain(this.validationRules)
+    return _.chain(this.validationError)
       .pickBy(_.identity)
       .isEmpty()
       .value();
@@ -179,6 +179,7 @@ export class AuthPage extends React.Component<IAuthProps> {
   };
 
   onSignUp = async (e: any) => {
+    console.error(this.validateForm(this.user))
     e.preventDefault();
 
     if (!this.validateForm(this.user)) {
