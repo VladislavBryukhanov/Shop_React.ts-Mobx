@@ -8,7 +8,7 @@ import _ from 'lodash';
 const axiosUsers = axios.create({
   baseURL: `${process.env.REACT_APP_CORE_API}/users`,
   withCredentials: true
-})
+});
 
 export class UsersStore {
     @observable
@@ -22,7 +22,6 @@ export class UsersStore {
     async fetchRoleList() {
       try {
         const { data: roles } = await axiosUsers.get('/fetch_role_list');
-
         runInAction(() => {
           this.availableRoles = roles;
         });

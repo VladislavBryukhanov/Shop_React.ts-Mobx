@@ -19,8 +19,8 @@ interface ICategoriesManagerProps {
   categoriesStore?: CategoriesStore
   rootStore?: RootStore
 }
-export const CategoriesManagerPage: React.FC<ICategoriesManagerProps> = inject('categoriesStore', 'rootStore')(
-    observer((props: ICategoriesManagerProps) => {
+export const CategoriesManagerPage: React.FC<ICategoriesManagerProps> = inject('categoriesStore', 'rootStore')(observer(
+  (props: ICategoriesManagerProps) => {
     const [ category, setCategory ] = useState('');
 
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {

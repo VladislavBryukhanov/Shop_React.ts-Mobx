@@ -10,8 +10,8 @@ const axiosAuth = axios.create({
 });
 
 export class AuthStore {
-  @observable me: IUser | null = null;
-  @observable authState: string | null = null;
+  @observable me?: IUser;
+  @observable authState?: string;
 
   @action
   async signIn(credentials: ICredentials) {
@@ -38,7 +38,7 @@ export class AuthStore {
     try {
       await axiosAuth.post('/sign_out');
       runInAction(() => {
-        this.me = null;
+        this.me = undefined;
         this.authState = AuthState.SignedOut;
       });
     } catch (err) {

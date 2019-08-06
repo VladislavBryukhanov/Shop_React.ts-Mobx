@@ -3,10 +3,10 @@ import { Dialog, Fab, Icon, withStyles } from '@material-ui/core';
 import { styles } from './open-chat-button.styles';
 import Chat from '../../../pages/Chat/chat.component';
 
-interface IOpeneChatButtonProps {
+interface IOpenChatButtonProps {
   classes: any
 }
-const OpenChatButton: React.FC<IOpeneChatButtonProps> = (props: IOpeneChatButtonProps) => {
+const OpenChatButton: React.FC<IOpenChatButtonProps> = (props: IOpenChatButtonProps) => {
   const [ open, changeDialogState ] = useState(false);
 
   return (

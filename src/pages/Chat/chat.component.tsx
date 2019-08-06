@@ -24,17 +24,6 @@ interface IChatProps extends RouteComponentProps {
 @observer
 class Chat extends React.Component<IChatProps> {
 
-  async componentDidMount() {
-    let interlocutorId;
-    if (this.props.interlocutor) {
-      interlocutorId = this.props.interlocutor.id;
-    }
-    
-    this.props.chatStore!.initConnection();
-    await this.props.chatStore!.openChat(interlocutorId);
-    this.props.chatStore!.fetchMessages();
-  }
-
   @computed
   get interlocutorUser() {
     const { customer, seller } = FileResources;
@@ -51,7 +40,18 @@ class Chat extends React.Component<IChatProps> {
       avatar: customer
     }
   }
-  
+
+  async componentDidMount() {
+    let interlocutorId;
+    if (this.props.interlocutor) {
+      interlocutorId = this.props.interlocutor.id;
+    }
+
+    this.props.chatStore!.initConnection();
+    await this.props.chatStore!.openChat(interlocutorId);
+    this.props.chatStore!.fetchMessages();
+  }
+
   componentWillUnmount() {
     this.props.chatStore!.closeConnection();
   }
@@ -72,7 +72,7 @@ class Chat extends React.Component<IChatProps> {
 
   render() {
     const { classes } = this.props;
-    
+
     return (
       <Grid container className={classes.chatBody}>
         <Toolbar className={classes.toolbar}>
@@ -88,7 +88,6 @@ class Chat extends React.Component<IChatProps> {
           {
             this.props.chatStore!.messages.map((message: IMessage) => (
               <div key={message.id} className={`${classes.message}`}>
-                
                 <div className={this.getMessageType(message)}>
                   <span className="content">{message.textContent}</span>
                   <div className="dateOfSend">

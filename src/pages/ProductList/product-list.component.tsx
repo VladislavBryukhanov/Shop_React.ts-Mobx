@@ -46,13 +46,13 @@ interface IProductListProps {
 @observer
 class ProductListPage extends React.Component<IProductListProps> {
 
-  isInCart(prodId: number) {
-    return this.props.cartStore!.productIds.includes(prodId);
-  }
-
   @computed
   get isMeUser() {
     return this.props.authStore!.me!.Role!.name === Roles.USER;
+  }
+
+  isInCart(prodId: number) {
+    return this.props.cartStore!.productIds.includes(prodId);
   }
 
   async deleteProduct(product: IProduct) {

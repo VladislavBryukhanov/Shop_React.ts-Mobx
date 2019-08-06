@@ -41,6 +41,6 @@ const MessageInput: React.FC<IMessageInputProps> = inject('chatStore')(observer(
       </MuiThemeProvider>
     )
   }
-))
+));
 
 export default withStyles(styles)(MessageInput);

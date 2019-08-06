@@ -207,32 +207,6 @@ export class AuthPage extends React.Component<IAuthProps> {
     await this.props.authStore!.signIn(this.user);
   };
 
-  credentials = (size: any) => (
-    <>
-      <Grid item xs={size}>
-        <TextField
-          fullWidth={true}
-          onChange={this.onValueChanged}
-          name="email"
-          label="Email"
-          error={!!this.validationError.email}
-          helperText={this.validationError.email}
-          onBlur={() => this.validateField('email')}/>
-      </Grid>
-      <Grid item xs={size}>
-        <TextField
-          fullWidth={true}
-          onChange={this.onValueChanged}
-          type="password"
-          name="password"
-          label="Password"
-          error={!!this.validationError.password}
-          helperText={this.validationError.password}
-          onBlur={() => this.validateField('password')}/>
-      </Grid>
-    </>
-  );
-
   public render() {
     return (
       <Grid container className="AuthPage">
@@ -252,9 +226,27 @@ export class AuthPage extends React.Component<IAuthProps> {
                   </Toolbar>
 
                   <Grid container>
-                    {
-                      this.credentials(6)
-                    }
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth={true}
+                        onChange={this.onValueChanged}
+                        name="email"
+                        label="Email"
+                        error={!!this.validationError.email}
+                        helperText={this.validationError.email}
+                        onBlur={() => this.validateField('email')}/>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth={true}
+                        onChange={this.onValueChanged}
+                        type="password"
+                        name="password"
+                        label="Password"
+                        error={!!this.validationError.password}
+                        helperText={this.validationError.password}
+                        onBlur={() => this.validateField('password')}/>
+                    </Grid>
                     <Grid item xs={6}>
                       <TextField
                         fullWidth={true}

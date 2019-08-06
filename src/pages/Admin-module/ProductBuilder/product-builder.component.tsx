@@ -153,7 +153,6 @@ class ProductBuilderPage extends React.Component<IProductBuilderProps> {
       .value();
   };
 
-
   onValueChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, name } = e.target;
     this.product[name] = value;

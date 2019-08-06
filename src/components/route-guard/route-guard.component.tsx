@@ -31,14 +31,12 @@ export class RouteGuard extends React.Component<IRouteGuard> {
     const { authState, me } = this.props.authStore!;
     const { requiredAuth, requiredGuest, requiredRoles } = this.props;
 
-    if (authState) {
-      if ((requiredAuth || requiredRoles) && authState === AuthState.SignedOut) {
-        return <Redirect to='/'/>
-      } else if (requiredGuest && authState === AuthState.SignedIn) {
-        return <Redirect to='/top_products'/>
-      } else if (requiredRoles && !(requiredRoles.includes(me!.Role!.name))) {
-        return <NotFoundPage/>;
-      }
+    if ((requiredAuth || requiredRoles) && authState === AuthState.SignedOut) {
+      return <Redirect to='/'/>
+    } else if (requiredGuest && authState === AuthState.SignedIn) {
+      return <Redirect to='/top_products'/>
+    } else if (requiredRoles && !(requiredRoles.includes(me!.Role!.name))) {
+      return <NotFoundPage/>;
     }
 
     return (

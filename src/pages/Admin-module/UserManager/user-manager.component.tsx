@@ -27,7 +27,7 @@ import PaginationComponent from '../../../components/pagination/pagination.compo
 import { USERS_ONE_PAGE_LIMIT, Roles } from '../../../common/constants';
 import { IPagingQuery } from '../../../types/pagingQuery';
 import { withPagingQuery } from '../../../components/pagination/withPagingQuery';
-import { styles } from './user-list.styles';
+import { styles } from './user-manager.styles';
 import { AdapterLink } from '../../../components/material-button-link/material-button-link.component';
 import { AuthStore } from '../../../stores/authStore';
 import Chat from '../../Chat/chat.component';
@@ -150,6 +150,7 @@ class UserManagerPage extends React.Component<IUserManageProps> {
                         </Box>
 
                         <Box flexGrow={1}>
+                          {/* TODO Button is not working issue: https://github.com/mui-org/material-ui/issues/16846 */}
                           {/* <Button>
                             component={AdapterLink}
                             to={{
@@ -161,7 +162,6 @@ class UserManagerPage extends React.Component<IUserManageProps> {
                             Show order list
                           </Button> */}
 
-                          {/* TODO Button is not working issue: https://github.com/mui-org/material-ui/issues/16846 */}
                           <ListItem
                             className={classes.buttonLinkWrapper}
                             component={AdapterLink}

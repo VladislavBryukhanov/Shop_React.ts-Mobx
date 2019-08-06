@@ -48,7 +48,7 @@ class NavigationDrawer extends React.Component<INavigationDrawerProps, INavigati
   get isMeUser() {
     return this.props.authStore!.me!.Role!.name === Roles.USER;
   }
-  
+
   // TODO change state to mobx observable
   constructor(props: INavigationDrawerProps) {
     super(props);

@@ -6,13 +6,15 @@ import authStore from './authStore';
 export class RootStore {
   dialogAnswer!: (value?: unknown) => void;
 
-  @observable snackbar: ISnackbar = {
+  @observable
+  snackbar: ISnackbar = {
    open: false,
    message: '',
    duration: 0
  };
 
- @observable dialog: IDialog = {
+ @observable
+ dialog: IDialog = {
    open: false,
    title: '',
    message: '',

@@ -41,6 +41,7 @@ class PaginationComponent extends React.Component<IPaginationProps> {
   componentDidMount() {
     this.fetchingMethod();
 
+    //Mobx provide updating (with calling fetchingMethod()) if query or category was changed
     reaction(
       () => ({ ...this.props.query, category: this.props.category }),
       (data, reaction) => {
